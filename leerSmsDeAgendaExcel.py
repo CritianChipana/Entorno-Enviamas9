@@ -209,72 +209,28 @@ class Controller(object):
 
             auxiliar = self.standardize_message(auxiliar)
 
-            # contact[1] = self.validate_phone(contact[1])
-
             credit = self.calculate_credits(auxiliar)
             
             # seleccionar el proveedor
             response = self.select_provider(user[8],auxiliar)
 
-            # payload = {
-            #     'credit': credit,
-            #     "send_at":  datetime.now(),
-            #     "route_send": "as",
-            #     "is_push": sms_campaign[3],
-            #     "content": auxiliar,
-            #     "phone": contact[1],
-            #     "status": 0,
-            #     "comment": "as",
-            #     "response": response[1],
-            #     "payload": str(response[0]),
-            #     "user_id": campaign[5],
-            #     "campaign_id": sms_campaign[7],
-            #     "channel_id": user[8], #user[8] = channel_id
-            #     "created_at": datetime.now(),
-            #     "updated_at":datetime.now()
-            # }
-
-            #tiene url
-
-            # result = self.send_sms(payload)
-            result = self.send_sms2(credit,sms_campaign,auxiliar,contact[1], response, campaign,user)
+            # mandar la informacion para crear el sms
+            result = self.send_sms(credit,sms_campaign,auxiliar,contact[1], 1 , response, campaign,user)
             print('///////////////////////////////////')
 
 
         print(contact[0])
-
-    def send_sms(self, payload):
-        # crear sms
-        sms = self.model.crear_sms(payload)
-        return sms
     
-    def send_sms2(self,credit, sms_campaign, auxiliar, phone,response,campaign,user):
+    def send_sms(self,credit, sms_campaign, auxiliar, phone,phone_status, response ,campaign,user):
         print('se envio sms')
-        # payload = {
-        #         'credit': credit,
-        #         "send_at":  datetime.now(),
-        #         "route_send": "as",
-        #         "is_push": sms_campaign[3],
-        #         "content": auxiliar,
-        #         "phone": contact[1],
-        #         "status": 0,
-        #         "comment": "as",
-        #         "response": response[1],
-        #         "payload": str(response[0]),
-        #         "user_id": campaign[5],
-        #         "campaign_id": sms_campaign[7],
-        #         "channel_id": user[8], #user[8] = channel_id
-        #         "created_at": datetime.now(),
-        #         "updated_at":datetime.now()
-        #     }
         payload = {
                     'credit': credit,
                     "send_at":  datetime.now(),
-                    "route_send": "as",
+                    "route_send": "",
                     "is_push": sms_campaign[3],
                     "content": auxiliar,
                     "phone": phone,
-                    "status": 0,
+                    "status": phone_status,
                     "comment": "",
                     "response": response[1],
                     "payload": str(response[0]),
@@ -354,33 +310,16 @@ class Controller(object):
 
                 auxiliar = self.standardize_message(auxiliar)
 
-                # contact[1] = self.validate_phone(contact[1])
+                phone_status = self.validate_phone(phone)
 
                 credit = self.calculate_credits(auxiliar)
-                # credit = 10
 
                 # seleccionar el proveedor
+                # if(phone_status == 1 ):
                 response = self.select_provider(user[8],auxiliar)
 
-                # payload = {
-                #     'credit': credit,
-                #     "send_at":  datetime.now(),
-                #     "route_send": "as",
-                #     "is_push": sms_campaign[3],
-                #     "content": auxiliar,
-                #     "phone": phone,
-                #     "status": 0,
-                #     "comment": "",
-                #     "response": response[1],
-                #     "payload": str(response[0]),
-                #     "user_id": campaign[5],
-                #     "campaign_id": sms_campaign[7],
-                #     "channel_id": user[8],
-                #     "created_at": datetime.now(),
-                #     "updated_at":datetime.now()
-                # }
-                # result = self.send_sms(payload)
-                result = self.send_sms2(credit,sms_campaign,auxiliar,phone, response, campaign,user)
+                #Mandar datos para crear sms
+                result = self.send_sms(credit,sms_campaign,auxiliar,phone, phone_status ,response, campaign,user)
 
                 print("cccccccccccccccccccccccccccccccccccccc")
 
@@ -396,6 +335,17 @@ class Controller(object):
     
     def calculate_credits(self, message):
         print('calcular mensage')
+        # data =   { 'message' : message }
+        # # response = requests.post('localhost:8000/api/calculatecredits',data=data)
+        # response = requests.post(config('ENDPOINT_CALCULATE_CREDITS'),data=data)
+        # # response = requests.post('http://localhost/enviamas9_production/public/web-api/provider',data=data)
+        # dataJson = response.json()
+        # if (dataJson['success']):
+        #     print(dataJson['data'])
+        #     print(dataJson['data']['messages'])
+        #     return dataJson['data']['messages']
+        # else :
+        #     return 0
         n=0
         m=0
         for f in message:
@@ -411,17 +361,6 @@ class Controller(object):
         credit = int(ceil(m / float(per_message)))
         return credit
 
-        # data =   { 'message' : message }
-        # # response = requests.post('localhost:8000/api/calculatecredits',data=data)
-        # response = requests.post(config('ENDPOINT_CALCULATE_CREDITS'),data=data)
-        # # response = requests.post('http://localhost/enviamas9_production/public/web-api/provider',data=data)
-        # dataJson = response.json()
-        # if (dataJson['success']):
-        #     print(dataJson['data'])
-        #     print(dataJson['data']['messages'])
-        #     return dataJson['data']['messages']
-        # else :
-        #     return 0
 
     def standardize_message(self, message):
         print('mensaje estandarizado')
@@ -442,7 +381,12 @@ class Controller(object):
 
     def validate_phone(self, phone):
         print('celular valido')
-        return phone
+        if( len(str(phone)) == 9  and type(phone) == int):
+            print('Numero valido')
+            return 1
+        print(type(phone))
+        print( len(str(phone)))
+        return 0
 
     def has_individual_url(self,sms_campaign,campaign, auxiliar):
         if( sms_campaign[4] == None and sms_campaign[5]!=None and ('[CUSTOM_URL]' in auxiliar)):
