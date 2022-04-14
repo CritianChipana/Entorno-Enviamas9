@@ -216,27 +216,28 @@ class Controller(object):
             # seleccionar el proveedor
             response = self.select_provider(user[8],auxiliar)
 
-            payload = {
-                'credit': credit,
-                "send_at":  datetime.now(),
-                "route_send": "as",
-                "is_push": sms_campaign[3],
-                "content": auxiliar,
-                "phone": contact[1],
-                "status": 0,
-                "comment": "as",
-                "response": response[1],
-                "payload": str(response[0]),
-                "user_id": campaign[5],
-                "campaign_id": sms_campaign[7],
-                "channel_id": user[8], #user[8] = channel_id
-                "created_at": datetime.now(),
-                "updated_at":datetime.now()
-            }
+            # payload = {
+            #     'credit': credit,
+            #     "send_at":  datetime.now(),
+            #     "route_send": "as",
+            #     "is_push": sms_campaign[3],
+            #     "content": auxiliar,
+            #     "phone": contact[1],
+            #     "status": 0,
+            #     "comment": "as",
+            #     "response": response[1],
+            #     "payload": str(response[0]),
+            #     "user_id": campaign[5],
+            #     "campaign_id": sms_campaign[7],
+            #     "channel_id": user[8], #user[8] = channel_id
+            #     "created_at": datetime.now(),
+            #     "updated_at":datetime.now()
+            # }
 
             #tiene url
 
-            result = self.send_sms(payload)
+            # result = self.send_sms(payload)
+            result = self.send_sms2(credit,sms_campaign,auxiliar,contact[1], response, campaign,user)
             print('///////////////////////////////////')
 
 
@@ -247,6 +248,44 @@ class Controller(object):
         sms = self.model.crear_sms(payload)
         return sms
     
+    def send_sms2(self,credit, sms_campaign, auxiliar, phone,response,campaign,user):
+        print('se envio sms')
+        # payload = {
+        #         'credit': credit,
+        #         "send_at":  datetime.now(),
+        #         "route_send": "as",
+        #         "is_push": sms_campaign[3],
+        #         "content": auxiliar,
+        #         "phone": contact[1],
+        #         "status": 0,
+        #         "comment": "as",
+        #         "response": response[1],
+        #         "payload": str(response[0]),
+        #         "user_id": campaign[5],
+        #         "campaign_id": sms_campaign[7],
+        #         "channel_id": user[8], #user[8] = channel_id
+        #         "created_at": datetime.now(),
+        #         "updated_at":datetime.now()
+        #     }
+        payload = {
+                    'credit': credit,
+                    "send_at":  datetime.now(),
+                    "route_send": "as",
+                    "is_push": sms_campaign[3],
+                    "content": auxiliar,
+                    "phone": phone,
+                    "status": 0,
+                    "comment": "",
+                    "response": response[1],
+                    "payload": str(response[0]),
+                    "user_id": campaign[5],
+                    "campaign_id": sms_campaign[7],
+                    "channel_id": user[8],
+                    "created_at": datetime.now(),
+                    "updated_at":datetime.now()
+                }
+        sms = self.model.crear_sms(payload)
+        return sms
 # ****************************************************************************************************************************************************
     def read_excel(self, path, sms_campaign, campaign):
 
@@ -323,24 +362,26 @@ class Controller(object):
                 # seleccionar el proveedor
                 response = self.select_provider(user[8],auxiliar)
 
-                payload = {
-                    'credit': credit,
-                    "send_at":  datetime.now(),
-                    "route_send": "as",
-                    "is_push": sms_campaign[3],
-                    "content": auxiliar,
-                    "phone": phone,
-                    "status": 0,
-                    "comment": "",
-                    "response": response[1],
-                    "payload": str(response[0]),
-                    "user_id": campaign[5],
-                    "campaign_id": sms_campaign[7],
-                    "channel_id": user[8],
-                    "created_at": datetime.now(),
-                    "updated_at":datetime.now()
-                }
-                result = self.send_sms(payload)
+                # payload = {
+                #     'credit': credit,
+                #     "send_at":  datetime.now(),
+                #     "route_send": "as",
+                #     "is_push": sms_campaign[3],
+                #     "content": auxiliar,
+                #     "phone": phone,
+                #     "status": 0,
+                #     "comment": "",
+                #     "response": response[1],
+                #     "payload": str(response[0]),
+                #     "user_id": campaign[5],
+                #     "campaign_id": sms_campaign[7],
+                #     "channel_id": user[8],
+                #     "created_at": datetime.now(),
+                #     "updated_at":datetime.now()
+                # }
+                # result = self.send_sms(payload)
+                result = self.send_sms2(credit,sms_campaign,auxiliar,phone, response, campaign,user)
+
                 print("cccccccccccccccccccccccccccccccccccccc")
 
         
