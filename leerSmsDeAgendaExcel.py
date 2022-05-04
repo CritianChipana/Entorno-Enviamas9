@@ -60,8 +60,8 @@ class Model:
             raise
 
     def crear_sms(self, payload):
-        sql = "INSERT INTO sms (credit, send_at,route_send, is_push, content, phone, status, comment, response, payload ,user_id, campaign_id, channel_id,created_at,updated_at) VALUES ({},'{}','{}',{},'{}','{}','{}','{}','{}','{}',{},{},{},'{}','{}')".format(
-            payload['credit'], payload['send_at'], payload['route_send'], payload['is_push'], payload['content'], payload['phone'], payload['status'], payload['comment'], payload['response'], payload['payload'],payload['user_id'], payload['campaign_id'], payload['channel_id'],payload['created_at'], payload['updated_at'])
+        sql = "INSERT INTO sms (credit,route_send, is_push, content, phone, status, comment, response, message_id ,payload ,user_id, campaign_id, channel_id,created_at,updated_at) VALUES ({},'{}',{},'{}','{}','{}','{}','{}',{},'{}',{},{},{},'{}','{}')".format(
+            payload['credit'], payload['route_send'], payload['is_push'], payload['content'], payload['phone'], payload['status'], payload['comment'], payload['response'], payload['message_id'],payload['payload'],payload['user_id'], payload['campaign_id'], payload['channel_id'],payload['created_at'], payload['updated_at'])
         try:
             self.cursor.execute(sql)
             self.connection.commit()
@@ -225,7 +225,6 @@ class Controller(object):
         print('se envio sms')
         payload = {
                     'credit': credit,
-                    "send_at":  datetime.now(),
                     "route_send": "",
                     "is_push": sms_campaign[3],
                     "content": auxiliar,
@@ -233,6 +232,7 @@ class Controller(object):
                     "status": phone_status,
                     "comment": "",
                     "response": response[1],
+                    "message_id": response[2],
                     "payload": str(response[0]),
                     "user_id": campaign[5],
                     "campaign_id": sms_campaign[7],
@@ -413,30 +413,35 @@ class Controller(object):
 
     def select_provider(self,channel_id, auxiliar):
         print('channel_id')
-        
+
         channel = self.model.select_channel_by_id(channel_id)
         provider = self.model.select_provider_by_id(channel[10])
         if( provider[0] == 1 ):
 
-            payload =   {
-                "dataCoding": "GSM8",
+            
+            payload = json.dumps({
                 "apiKey": channel[4],
+                "carrier": "Telcel",
                 "country": "PE",
                 "dial": channel[5],
                 "message": auxiliar,
-                "msisdns": "GSM8 {}",
-                "tag": "GSM8",
-                "msgClass": "GSM8 {}"
-            }
+                "msisdns": [
+                    525512345678
+                ],
+                "tag": "Tag prueba",
+                "mask": "MASCARA",
+                "schedule": "2018-07-01T10:15:30+01:00",
+                "dlr": "true",
+                "optionals": "{registeredDelivery:11}"
+            })
 
             headers = {
-                'Content-Type': "application/json",
-                'Authorization': str(channel[6]),
-                'cache-control': "no-cache"
-                }
+            'Content-Type': 'application/json'
+            }
 
-            response = requests.post(config('ENDPOINT_SIMULADOR'),headers=headers,data=payload)
+            response = requests.request("POST", config('ENDPOINT_SIMULADOR'), headers=headers, data=payload)
             dataJson = response.json()
+            print(response)
             data_text = response.text
 
             return json.dumps(payload), data_text, dataJson['mailingId']
