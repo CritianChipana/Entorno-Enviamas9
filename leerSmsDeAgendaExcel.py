@@ -60,8 +60,8 @@ class Model:
             raise
 
     def crear_sms(self, payload):
-        sql = "INSERT INTO sms (credit,route_send, is_push, content, phone, status, comment, response, message_id ,payload ,user_id, campaign_id, channel_id,created_at,updated_at) VALUES ({},'{}',{},'{}','{}','{}','{}','{}',{},'{}',{},{},{},'{}','{}')".format(
-            payload['credit'], payload['route_send'], payload['is_push'], payload['content'], payload['phone'], payload['status'], payload['comment'], payload['response'], payload['message_id'],payload['payload'],payload['user_id'], payload['campaign_id'], payload['channel_id'],payload['created_at'], payload['updated_at'])
+        sql = "INSERT INTO sms (credit, is_push, content, phone, status, comment, response, message_id ,payload ,user_id, campaign_id, channel_id,created_at,updated_at) VALUES ({},{},'{}','{}','{}','{}','{}',{},'{}',{},{},{},'{}','{}')".format(
+            payload['credit'], payload['is_push'], payload['content'], payload['phone'], payload['status'], payload['comment'], payload['response'], payload['message_id'],payload['payload'],payload['user_id'], payload['campaign_id'], payload['channel_id'],payload['created_at'], payload['updated_at'])
         try:
             self.cursor.execute(sql)
             self.connection.commit()
@@ -215,13 +215,13 @@ class Controller(object):
             response = self.select_provider(user[8],auxiliar)
 
             # mandar la informacion para crear el sms
-            result = self.send_sms(credit,sms_campaign,auxiliar,contact[1], 1 , response, campaign,user)
+            result = self.send_sms(credit,sms_campaign,auxiliar,contact[1] , response, campaign,user)
             print('///////////////////////////////////')
 
 
         print(contact[0])
     
-    def send_sms(self,credit, sms_campaign, auxiliar, phone,phone_status, response ,campaign,user):
+    def send_sms(self,credit, sms_campaign, auxiliar, phone, response ,campaign,user):
         print('se envio sms')
         payload = {
                     'credit': credit,
@@ -229,7 +229,7 @@ class Controller(object):
                     "is_push": sms_campaign[3],
                     "content": auxiliar,
                     "phone": phone,
-                    "status": phone_status,
+                    "status": 'DELIVERED',
                     "comment": "",
                     "response": response[1],
                     "message_id": response[2],
@@ -319,7 +319,7 @@ class Controller(object):
                 response = self.select_provider(user[8],auxiliar)
 
                 #Mandar datos para crear sms
-                result = self.send_sms(credit,sms_campaign,auxiliar,phone, phone_status ,response, campaign,user)
+                result = self.send_sms(credit,sms_campaign,auxiliar,phone ,response, campaign,user)
 
                 print("cccccccccccccccccccccccccccccccccccccc")
 
