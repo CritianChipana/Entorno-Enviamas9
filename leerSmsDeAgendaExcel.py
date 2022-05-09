@@ -439,7 +439,7 @@ class Controller(object):
             'Content-Type': 'application/json'
             }
 
-            response = requests.request("POST", config('ENDPOINT_SIMULADOR'), headers=headers, data=payload)
+            response = requests.request("POST", config('ENDPOINT_PROVEEDOR'), headers=headers, data=payload)
             dataJson = response.json()
             print(response)
             data_text = response.text
@@ -464,7 +464,7 @@ class Controller(object):
                 'cache-control': "no-cache"
                 }
 
-            response = requests.post(config('ENDPOINT_SIMULADOR'),headers=headers,data=payload)
+            response = requests.post(config('ENDPOINT_PROVEEDOR'),headers=headers,data=payload)
             dataJson = response.json()
             data_text = response.text
 
@@ -498,7 +498,7 @@ class Controller(object):
                     print('leer rows y guardarlos en una variable')
                     excel_sms_campaign = self.model.select_excel_sms_by_id(campaign[0])
                     # self.read_excel(r"C:\xampp\htdocs\enviamas9_production\public/storage/ExcelCampaing/Hola.xlsx", sms_campaign,campaign)
-                    self.read_excel(config('PUBLIC_PATH') + excel_sms_campaign[1], sms_campaign,campaign)
+                    self.read_excel(config('PUBLIC_PATH_SMS_EXCEL') + excel_sms_campaign[1], sms_campaign,campaign)
 
                 else:
                     print('traer contactos de agendas y guardarlos en variable')
