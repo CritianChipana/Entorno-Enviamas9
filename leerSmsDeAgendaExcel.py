@@ -325,14 +325,26 @@ class Controller(object):
 
         
     def create_cut_url(self, long_url):
-        data =   json.dumps({ 'url_register' : [ { 'original_url' : long_url }] })
-        response = requests.post(config('ENDPOINT_CUT_PE'),data=data, auth=(config('USER_CUT_PE'),config('PASSWORD_CUT_PE')))
+        # response = requests.post(config('ENDPOINT_CUT_PE'),data=data, auth=(config('USER_CUT_PE'),config('PASSWORD_CUT_PE')))
+
+        payload = json.dumps({
+        "url_register": long_url,
+        "type": 2
+        })
+        headers = {
+        'Authorization': 'Basic YXBwQGVudmlhbWFzLnBlOkRldmVsb3BtZW50JCQyMDIy',
+        'Content-Type': 'application/json'
+        }
+
+        response = requests.post(config('ENDPOINT_CUT_PE'), headers=headers, data=payload)
         dataJson = response.json()
-        
-        print(dataJson['shortUrl'])
-        print(dataJson['cut_url_id'])
-        return dataJson
-    
+
+        print((  dataJson))
+        print(dataJson['data']['shortUrl'])
+        return dataJson['data']
+
+            
+
     def calculate_credits(self, message):
         print('calcular mensage')
         # data =   { 'message' : message }
@@ -401,7 +413,7 @@ class Controller(object):
                 'long_url':sms_campaign[5],
                 "user_id": campaign[5],
                 'group_url_id':group_url[0],
-                'url_id':url['cut_url_id'],
+                'url_id':url['url_id'],
                 'status':False,
                 'state':True,
                 'created_at':datetime.now(),
@@ -492,7 +504,7 @@ class Controller(object):
                 # sms_campaign = self.model.select_sms_campaign_by_id( campaign[0])
 
                 #TODO: CAMBIAR EL STATUS DE CAMPAÑA A PROCESANDO 3
-                self.model.change_state_campaign(campaign[0], 3)
+                # self.model.change_state_campaign(campaign[0], 3)
 
                 if(is_excel):
                     print('leer rows y guardarlos en una variable')
@@ -511,7 +523,7 @@ class Controller(object):
 
             print('****************** -- for')
             # TODO: CAMBIAR EL ESTADO DE LA CAMPANA
-            self.model.change_state_campaign(campaign[0], 1)
+            # self.model.change_state_campaign(campaign[0], 1)
 
             return self.view.list_campaign(campaign)
 
@@ -530,9 +542,3 @@ class View(object):
 # El main
 controlador = Controller()
 controlador.process_campaign()
-
-
-
-
-
-
