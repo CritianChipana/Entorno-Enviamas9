@@ -6,7 +6,7 @@ Created on Wed Apr  6 10:06:17 2022
 
 """
 from decouple import config
-
+# import traceback
 import pymysql
 from datetime import datetime
 import openpyxl
@@ -40,7 +40,7 @@ class Model:
             raise
 
     def select_all_contact_by_agenda_model(self, id):
-        sql = 'SELECT * FROM contacts WHERE agenda_id = {} '.format(id)
+        sql = 'SELECT * FROM contacts WHERE agenda_id = {} and state = true '.format(id)
         try:
             self.cursor.execute(sql)
             campaigns = self.cursor.fetchall()
@@ -157,6 +157,9 @@ class Controller(object):
     def send_sms_by_agenda(self, campaign, contacts_by_agenda, sms_campaign):
         #id del usuario campaign[5]
         user = self.model.select_user(campaign[5])
+        f.write('\n' + 'El usuario usa el channel: ' + str(user[8]))
+        f.write('\n' + 'El email del usuario es: ' + str(user[2]))
+        f.write('\n' + '*********** Inicio de envio de sms ******************')
 
         key_contacts = [
             {
@@ -196,8 +199,12 @@ class Controller(object):
                 "value": 10,
             },
         ]
+        contador_de_sms_enviados = 0
 
         for contact in contacts_by_agenda:
+            contador_de_sms_enviados = contador_de_sms_enviados + 1
+            f.write('\n' + 'Sms '+ str(contador_de_sms_enviados) + ' de '+ str(len(contacts_by_agenda)))
+
             auxiliar = sms_campaign[2]
             for clave in key_contacts:
                 if(clave['key'] in auxiliar and contact[clave['value']] != None) :
@@ -207,12 +214,19 @@ class Controller(object):
             # usar url individual
             auxiliar=  self.has_individual_url(sms_campaign,campaign,auxiliar)
 
+            if( auxiliar == None ):
+                exit()
+            
+
             auxiliar = self.standardize_message(auxiliar)
 
             credit = self.calculate_credits(auxiliar)
             
             # seleccionar el proveedor
             response = self.select_provider(user[8],auxiliar)
+
+            if(response == None):
+                exit()
 
             # mandar la informacion para crear el sms
             result = self.send_sms(credit,sms_campaign,auxiliar,contact[1] , response, campaign,user)
@@ -225,7 +239,6 @@ class Controller(object):
         print('se envio sms')
         payload = {
                     'credit': credit,
-                    "route_send": "",
                     "is_push": sms_campaign[3],
                     "content": auxiliar,
                     "phone": phone,
@@ -240,6 +253,12 @@ class Controller(object):
                     "created_at": datetime.now(),
                     "updated_at":datetime.now()
                 }
+        f.write('\n' + 'hora de envio de sms:' + str(datetime.now()))
+        f.write('\n' + 'datos del sms:')
+        f.write(f'\n {repr(payload)}')
+        f.write(f'\n')
+        
+        
         sms = self.model.crear_sms(payload)
         return sms
 # ****************************************************************************************************************************************************
@@ -247,6 +266,9 @@ class Controller(object):
 
         user = self.model.select_user(campaign[5])
 
+        f.write('\n' + 'El usuario usa el channel: ' + str(user[8]))
+        f.write('\n' + 'El email del usuario es: ' + str(user[2]))
+        f.write('\n' + '*********** Inicio de envio de sms ******************')
         # leer el archivo opcion 1
         key_contacts = [
             {
@@ -327,6 +349,8 @@ class Controller(object):
     def create_cut_url(self, long_url):
         # response = requests.post(config('ENDPOINT_CUT_PE'),data=data, auth=(config('USER_CUT_PE'),config('PASSWORD_CUT_PE')))
 
+    
+
         payload = json.dumps({
         "url_register": long_url,
         "type": 2
@@ -403,85 +427,130 @@ class Controller(object):
     def has_individual_url(self,sms_campaign,campaign, auxiliar):
         if( sms_campaign[4] == None and sms_campaign[5]!=None and ('[CUSTOM_URL]' in auxiliar)):
             print('tiene link corto')
-            group_url = self.model.select_group_url(campaign[0])
-            url = self.create_cut_url(sms_campaign[5])
-            auxiliar = auxiliar.replace( '[CUSTOM_URL]', url['shortUrl'] )
+            f.write('\n' + 'Tiene link corto personalizado')
 
-            payload_url = {
-                'name':'url individual',
-                'short_url':url['shortUrl'],
-                'long_url':sms_campaign[5],
-                "user_id": campaign[5],
-                'group_url_id':group_url[0],
-                'url_id':url['url_id'],
-                'status':False,
-                'state':True,
-                'created_at':datetime.now(),
-                'updated_at':datetime.now(),
-            }
-            new_url = self.model.create_url(payload_url)
+            try:
+                group_url = self.model.select_group_url(campaign[0])
+                url = self.create_cut_url(sms_campaign[5])
+                auxiliar = auxiliar.replace( '[CUSTOM_URL]', url['shortUrl'] )
 
-        return auxiliar
+                payload_url = {
+                    'name':'url individual',
+                    'short_url':url['shortUrl'],
+                    'long_url':sms_campaign[5],
+                    "user_id": campaign[5],
+                    'group_url_id':group_url[0],
+                    'url_id':url['url_id'],
+                    'status':False,
+                    'state':True,
+                    'created_at':datetime.now(),
+                    'updated_at':datetime.now(),
+                }
+                new_url = self.model.create_url(payload_url)
+
+                return auxiliar
+
+            except Exception as e: 
+                f.write('\n' + 'ERROR:!!!!!' + 'No se pudo crear url personalizado, verifique credenciales o el path de cut.pe')
+                f.write('\n' + str(e))
+                
+                print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
+                print("Ocurrio un Problema a la hora de cortar url, No se pudo crear url personalizado")
+                print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
+                # exit()
+                # sys.exit()
+                # quit()
+                return None
+
+        else: 
+            return auxiliar
 
     def select_provider(self,channel_id, auxiliar):
         print('channel_id')
+        f.write('\n' + 'Enviando por el canal con id: ' + str(channel_id))
 
         channel = self.model.select_channel_by_id(channel_id)
+
         provider = self.model.select_provider_by_id(channel[10])
+        f.write('\n' + 'Enviando por el provider con id: ' + str(provider[0]))
+
         if( provider[0] == 1 ):
 
-            
-            payload = json.dumps({
-                "apiKey": channel[4],
-                "carrier": "Telcel",
-                "country": "PE",
-                "dial": channel[5],
-                "message": auxiliar,
-                "msisdns": [
-                    525512345678
-                ],
-                "tag": "Tag prueba",
-                "mask": "MASCARA",
-                "schedule": "2018-07-01T10:15:30+01:00",
-                "dlr": "true",
-                "optionals": "{registeredDelivery:11}"
-            })
+            try:
+                payload = json.dumps({
+                    "apiKey": channel[4],
+                    "carrier": "Telcel",
+                    "country": "PE",
+                    "dial": channel[5],
+                    "message": auxiliar,
+                    "msisdns": [
+                        525512345678
+                    ],
+                    "tag": "Tag prueba",
+                    "mask": "MASCARA",
+                    "schedule": "2018-07-01T10:15:30+01:00",
+                    "dlr": "true",
+                    "optionals": "{registeredDelivery:11}"
+                })
 
-            headers = {
-            'Content-Type': 'application/json'
-            }
-
-            response = requests.request("POST", config('ENDPOINT_PROVEEDOR'), headers=headers, data=payload)
-            dataJson = response.json()
-            print(response)
-            data_text = response.text
-
-            return json.dumps(payload), data_text, dataJson['mailingId']
-
-        else:
-            payload =   {
-                "dataCoding": "SADS8",
-                "apiKey": channel[4],
-                "country": "PE",
-                "dial": channel[5],
-                "message": auxiliar,
-                "msisdns": "GSrr {}",
-                "tag": "Gassa",
-                "msgClass": "Gasas8 {}"
-            }
-
-            headers = {
-                'Content-Type': "application/json",
-                'Authorization': str(channel[6]),
-                'cache-control': "no-cache"
+                headers = {
+                'Content-Type': 'application/json'
                 }
 
-            response = requests.post(config('ENDPOINT_PROVEEDOR'),headers=headers,data=payload)
-            dataJson = response.json()
-            data_text = response.text
+                response = requests.request("POST", config('ENDPOINT_PROVEEDOR'), headers=headers, data=payload)
+                dataJson = response.json()
+                mailingId = dataJson['mailingId']
+                print(response)
+                data_text = response.text
 
-            return json.dumps(payload), data_text, dataJson['mailingId']
+                return json.dumps(payload), data_text, mailingId
 
+            except Exception as e: 
+                f.write('\n' + 'ERROR!!!!: ' + 'No se pudo enviar mensaje por el proveedor: ' + str(provider[0]) + '  veriique el payload o la ruta de destino')
+                f.write('\n' + str(e))
+
+                print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
+                print("No se pudo enviar mensaje por el proveedor 1")
+                print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
+                
+                return None
+
+        else:
+
+            try:
+
+                payload =   {
+                    "dataCoding": "SADS8",
+                    "apiKey": channel[4],
+                    "country": "PE",
+                    "dial": channel[5],
+                    "message": auxiliar,
+                    "msisdns": "GSrr {}",
+                    "tag": "Gassa",
+                    "msgClass": "Gasas8 {}"
+                }
+
+                headers = {
+                    'Content-Type': "application/json",
+                    'Authorization': str(channel[6]),
+                    'cache-control': "no-cache"
+                    }
+
+                response = requests.post(config('ENDPOINT_PROVEEDOR'),headers=headers,data=payload)
+                dataJson = response.json()
+                data_text = response.text
+
+                return json.dumps(payload), data_text, dataJson['mailingId']
+            
+            except Exception as e: 
+                f.write('\n' + 'ERROR!!!!: ' + 'No se pudo enviar mensaje por el proveedor: ' + str(provider[0]) + '  veriique el payload o la ruta de destino')
+                f.write('\n' + str(e))
+
+                print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
+                print("No se pudo enviar mensaje por el proveedor 2")
+                print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
+                
+                return None
 
 
     def process_campaign(self):
@@ -489,6 +558,16 @@ class Controller(object):
         campaign = self.model.select_all_campaign_agenda_excel_model()
         # for campaign in campaigns:
         if(campaign != None): 
+            print("***************************************************")
+            global f 
+            f = open (str('Campaigns/campaign'+ str(campaign[0]) +".log"),'w')
+            f.write('***** campaña seleccionada ******')
+            f.write('\nid de campana: ' + str(campaign[0]))
+            f.write('\n' + 'El usuario tiene el id:' + str(campaign[5]))
+            f.write('\n' + 'hora de envio de sms de la campaña:' + str(datetime.now()))
+
+            print(campaign)
+            print("***************************************************")
             # print(campaign[0])
             sms_campaign = self.model.select_sms_campaign_by_id( campaign[0])
 
@@ -496,25 +575,32 @@ class Controller(object):
             # is_excel = True if campaign[6] == 3 else False
 
             if(is_scheduled):
+                f.write('\n' + 'La campaña esta agendado para el dia: ' + str(campaign[3]))
                 print(campaign[3])
                 is_data_more_than_today = True if datetime.strptime("{}".format(campaign[3]), '%Y-%m-%d %H:%M:%S') > datetime.now() else False
+            else :
+                f.write('\n' + 'La campana no esta agendada ' )
 
             if(is_scheduled == False or is_data_more_than_today == True):
                 is_excel = True if campaign[6] == 3 else False
                 # sms_campaign = self.model.select_sms_campaign_by_id( campaign[0])
 
                 #TODO: CAMBIAR EL STATUS DE CAMPAÑA A PROCESANDO 3
-                # self.model.change_state_campaign(campaign[0], 3)
+                f.write('\n' + 'Actualizando el estado de la campaña a : 3 ')
+                self.model.change_state_campaign(campaign[0], 3)
 
                 if(is_excel):
                     print('leer rows y guardarlos en una variable')
                     excel_sms_campaign = self.model.select_excel_sms_by_id(campaign[0])
+                    f.write('\n' + 'Es una campaña creada por excel, el id del excel es: ' + str(excel_sms_campaign[0]))
                     # self.read_excel(r"C:\xampp\htdocs\enviamas9_production\public/storage/ExcelCampaing/Hola.xlsx", sms_campaign,campaign)
                     self.read_excel(config('PUBLIC_PATH_SMS_EXCEL') + excel_sms_campaign[1], sms_campaign,campaign)
 
                 else:
                     print('traer contactos de agendas y guardarlos en variable')
                     contacts_by_agenda = self.model.select_all_contact_by_agenda_model(campaign[4])
+                    f.write('\n' + 'Es una campana creada por agenda, el id de la agenda es: ' + str(campaign[4]))
+                    f.write('\n' + 'La agenda cuenta con un numero de contactos igual a: ' + str(len(contacts_by_agenda)))
                     sms_campaign = self.model.select_sms_campaign_by_id( campaign[0])
                     self.send_sms_by_agenda( campaign, contacts_by_agenda, sms_campaign)
 
@@ -523,7 +609,8 @@ class Controller(object):
 
             print('****************** -- for')
             # TODO: CAMBIAR EL ESTADO DE LA CAMPANA
-            # self.model.change_state_campaign(campaign[0], 1)
+            f.write('\n' + 'Actualizando el estado de la campaña a : 1 ')
+            self.model.change_state_campaign(campaign[0], 1)
 
             return self.view.list_campaign(campaign)
 
@@ -540,5 +627,14 @@ class View(object):
 
 
 # El main
-controlador = Controller()
-controlador.process_campaign()
+try:
+
+    controlador = Controller()
+    controlador.process_campaign()
+    # raise KeyError
+except Exception as e: 
+    f.write('\n' + 'ERROR!!!!: en el script de python ' + repr(e))
+    print("222222222222222222222")
+    print(repr(e))
+    # traceback.print_exc()
+    print("222222222222222222222")
