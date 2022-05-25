@@ -633,7 +633,7 @@ try:
     controlador.process_campaign()
     # raise KeyError
 except Exception as e: 
-    f.write('\n' + 'ERROR!!!!: en el script de python ' + repr(e))
+    #f.write('\n' + 'ERROR!!!!: en el script de python ' + repr(e))
     print("222222222222222222222")
     print(repr(e))
     # traceback.print_exc()
