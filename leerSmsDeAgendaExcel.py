@@ -626,12 +626,6 @@ class View(object):
         print('ver')
 
 
-# El main
-try:
+controlador = Controller()
+controlador.process_campaign()
 
-    controlador = Controller()
-    controlador.process_campaign()
-    # raise KeyError
-except Exception as e: 
-    print('Error:')
-    print(repr(e))
