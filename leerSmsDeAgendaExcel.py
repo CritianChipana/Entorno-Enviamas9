@@ -560,7 +560,7 @@ class Controller(object):
         if(campaign != None): 
             print("***************************************************")
             global f 
-            f = open (str('Campaigns/campaign'+ str(campaign[0]) +".log"),'w')
+            f = open (str( config('PATH_LOG_CAMPAIGN') + str(campaign[0]) +".log"),'w')
             f.write('***** campaña seleccionada ******')
             f.write('\nid de campana: ' + str(campaign[0]))
             f.write('\n' + 'El usuario tiene el id:' + str(campaign[5]))
