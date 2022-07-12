@@ -133,7 +133,7 @@ class Model:
             print(e)
             return False
 
-    def select_provider_by_id(self, provider_id):
+    def send_sms_to_provider_by_id(self, provider_id):
         sql = "SELECT * FROM providers where id = {} ".format(provider_id)
         try:
             self.cursor.execute(sql)
@@ -148,17 +148,20 @@ class Model:
 
 
 class Controller(object):
-    is_scheduled2 = True
 
     def __init__(selft):
         selft.model = Model()
         selft.view = View()
 
     def send_sms_by_agenda(self, campaign, contacts_by_agenda, sms_campaign):
-        #id del usuario campaign[5]
-        user = self.model.select_user(campaign[5])
-        f.write('\n' + 'El usuario usa el channel: ' + str(user[8]))
-        f.write('\n' + 'El email del usuario es: ' + str(user[2]))
+
+        user_id = campaign[5]
+        user_chanel_id = user[8]
+        user_email = user[2]
+        
+        user = self.model.select_user(user_id)
+        f.write('\n' + 'El usuario usa el channel: ' + str(user_chanel_id))
+        f.write('\n' + 'El email del usuario es: ' + str(user_email))
         f.write('\n' + '*********** Inicio de envio de sms ******************')
 
         key_contacts = [
@@ -199,43 +202,46 @@ class Controller(object):
                 "value": 10,
             },
         ]
+        
         contador_de_sms_enviados = 0
 
         for contact in contacts_by_agenda:
             contador_de_sms_enviados = contador_de_sms_enviados + 1
             f.write('\n' + 'Sms '+ str(contador_de_sms_enviados) + ' de '+ str(len(contacts_by_agenda)))
 
-            auxiliar = sms_campaign[2]
-            for clave in key_contacts:
-                if(clave['key'] in auxiliar and contact[clave['value']] != None) :
-                    auxiliar = auxiliar.replace(clave['key'], contact[clave['value']])  
-                else:
-                    auxiliar=auxiliar.replace(clave['key'], "")
-            # usar url individual
-            auxiliar=  self.has_individual_url(sms_campaign,campaign,auxiliar)
+            message = sms_campaign[2]
 
-            if( auxiliar == None ):
+            for clave in key_contacts:
+                if(clave['key'] in message and contact[clave['value']] != None) :
+                    message = message.replace(clave['key'], contact[clave['value']])  
+                else:
+                    message=message.replace(clave['key'], "")
+
+            # usar url individual
+            message = self.has_individual_url(sms_campaign,campaign,message)
+
+            if( message == None ):
                 exit()
             
 
-            auxiliar = self.standardize_message(auxiliar)
-
-            credit = self.calculate_credits(auxiliar)
+            message = self.standardize_message(message)
+            number = contact[1]
+            credit = self.calculate_credits(message)
             
             # seleccionar el proveedor
-            response = self.select_provider(user[8],auxiliar)
+            response = self.send_sms_to_provider(user_chanel_id, message, number)
 
             if(response == None):
                 exit()
 
             # mandar la informacion para crear el sms
-            result = self.send_sms(credit,sms_campaign,auxiliar,contact[1] , response, campaign,user)
+            result = self.send_sms(credit,sms_campaign,message,contact[1] , response, campaign,user)
             print('///////////////////////////////////')
 
 
         print(contact[0])
     
-    def send_sms(self,credit, sms_campaign, auxiliar, phone, response ,campaign,user):
+    def send_sms(self,credit, sms_campaign, message, phone, response ,campaign,user):
         print('se envio sms')
         payload = {
                     'credit': credit,
@@ -261,7 +267,7 @@ class Controller(object):
         
         sms = self.model.crear_sms(payload)
         return sms
-# ****************************************************************************************************************************************************
+
     def read_excel(self, path, sms_campaign, campaign):
 
         user = self.model.select_user(campaign[5])
@@ -338,19 +344,14 @@ class Controller(object):
 
                 # seleccionar el proveedor
                 # if(phone_status == 1 ):
-                response = self.select_provider(user[8],auxiliar)
+                response = self.send_sms_to_provider(user[8],auxiliar)
 
                 #Mandar datos para crear sms
                 result = self.send_sms(credit,sms_campaign,auxiliar,phone ,response, campaign,user)
 
                 print("cccccccccccccccccccccccccccccccccccccc")
 
-        
     def create_cut_url(self, long_url):
-        # response = requests.post(config('ENDPOINT_CUT_PE'),data=data, auth=(config('USER_CUT_PE'),config('PASSWORD_CUT_PE')))
-
-    
-
         payload = json.dumps({
         "url_register": long_url,
         "type": 2
@@ -367,21 +368,8 @@ class Controller(object):
         print(dataJson['data']['shortUrl'])
         return dataJson['data']
 
-            
-
     def calculate_credits(self, message):
         print('calcular mensage')
-        # data =   { 'message' : message }
-        # # response = requests.post('localhost:8000/api/calculatecredits',data=data)
-        # response = requests.post(config('ENDPOINT_CALCULATE_CREDITS'),data=data)
-        # # response = requests.post('http://localhost/enviamas9_production/public/web-api/provider',data=data)
-        # dataJson = response.json()
-        # if (dataJson['success']):
-        #     print(dataJson['data'])
-        #     print(dataJson['data']['messages'])
-        #     return dataJson['data']['messages']
-        # else :
-        #     return 0
         n=0
         m=0
         for f in message:
@@ -396,7 +384,6 @@ class Controller(object):
             per_message = 153
         credit = int(ceil(m / float(per_message)))
         return credit
-
 
     def standardize_message(self, message):
         print('mensaje estandarizado')
@@ -416,16 +403,17 @@ class Controller(object):
         return message
 
     def validate_phone(self, phone):
-        print('celular valido')
+        print('validacion de celular')
+
         if( len(str(phone)) == 9  and type(phone) == int):
             print('Numero valido')
             return 1
-        print(type(phone))
-        print( len(str(phone)))
-        return 0
+        else:
+            return 0
 
-    def has_individual_url(self,sms_campaign,campaign, auxiliar):
-        if( sms_campaign[4] == None and sms_campaign[5]!=None and ('[CUSTOM_URL]' in auxiliar)):
+    def has_individual_url(self, sms_campaign, campaign, auxiliar):
+        
+        if (sms_campaign[4] == None and sms_campaign[5]!= None and ('[CUSTOM_URL]' in auxiliar)):
             print('tiene link corto')
             f.write('\n' + 'Tiene link corto personalizado')
 
@@ -465,32 +453,30 @@ class Controller(object):
         else: 
             return auxiliar
 
-    def select_provider(self,channel_id, auxiliar):
+    def send_sms_to_provider(self, channel_id, message, number):
+
         print('channel_id')
         f.write('\n' + 'Enviando por el canal con id: ' + str(channel_id))
 
         channel = self.model.select_channel_by_id(channel_id)
+        provider_id = channel[10]
+        api_key = channel[4]
+        dial = channel[5]
+        f.write('\n' + 'Enviando por el provider con id: ' + str(provider_id))
 
-        provider = self.model.select_provider_by_id(channel[10])
-        f.write('\n' + 'Enviando por el provider con id: ' + str(provider[0]))
-
-        if( provider[0] == 1 ):
+        if( provider_id == 1 ):
 
             try:
                 payload = json.dumps({
-                    "apiKey": channel[4],
-                    "carrier": "Telcel",
+                    "apiKey": api_key,
                     "country": "PE",
-                    "dial": channel[5],
-                    "message": auxiliar,
+                    "dial": dial,
+                    "message": message,
                     "msisdns": [
-                        525512345678
+                        '51' + str(number)
                     ],
-                    "tag": "Tag prueba",
-                    "mask": "MASCARA",
-                    "schedule": "2018-07-01T10:15:30+01:00",
-                    "dlr": "true",
-                    "optionals": "{registeredDelivery:11}"
+                    "tag": "Desde ENVIAMAS v2",
+                    "mask": "BACKUS"
                 })
 
                 headers = {
@@ -506,7 +492,7 @@ class Controller(object):
                 return json.dumps(payload), data_text, mailingId
 
             except Exception as e: 
-                f.write('\n' + 'ERROR!!!!: ' + 'No se pudo enviar mensaje por el proveedor: ' + str(provider[0]) + '  veriique el payload o la ruta de destino')
+                f.write('\n' + 'ERROR!!!!: ' + 'No se pudo enviar mensaje por el proveedor: ' + str(provider_id) + '  veriique el payload o la ruta de destino')
                 f.write('\n' + str(e))
 
                 print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
@@ -524,7 +510,7 @@ class Controller(object):
                     "apiKey": channel[4],
                     "country": "PE",
                     "dial": channel[5],
-                    "message": auxiliar,
+                    "message": message,
                     "msisdns": "GSrr {}",
                     "tag": "Gassa",
                     "msgClass": "Gasas8 {}"
@@ -543,7 +529,7 @@ class Controller(object):
                 return json.dumps(payload), data_text, dataJson['mailingId']
             
             except Exception as e: 
-                f.write('\n' + 'ERROR!!!!: ' + 'No se pudo enviar mensaje por el proveedor: ' + str(provider[0]) + '  veriique el payload o la ruta de destino')
+                f.write('\n' + 'ERROR!!!!: ' + 'No se pudo enviar mensaje por el proveedor: ' + str(provider_id) + '  veriique el payload o la ruta de destino')
                 f.write('\n' + str(e))
 
                 print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
@@ -551,7 +537,6 @@ class Controller(object):
                 print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
                 
                 return None
-
 
     def process_campaign(self):
         
