@@ -154,12 +154,13 @@ class Controller(object):
         selft.view = View()
 
     def send_sms_by_agenda(self, campaign, contacts_by_agenda, sms_campaign):
+        
+        user = self.model.select_user(user_id)
 
         user_id = campaign[5]
         user_chanel_id = user[8]
         user_email = user[2]
         
-        user = self.model.select_user(user_id)
         f.write('\n' + 'El usuario usa el channel: ' + str(user_chanel_id))
         f.write('\n' + 'El email del usuario es: ' + str(user_email))
         f.write('\n' + '*********** Inicio de envio de sms ******************')
@@ -319,35 +320,35 @@ class Controller(object):
         print("###########")
 
         for i in range(1,row_count):
-            auxiliar = sms_campaign[2]
-            print(auxiliar)
+            message = sms_campaign[2]
+
             for clave in key_contacts:
-                if sheet_name.cell(row=i+1,column=1).value !=None:
-                    phone=(sheet_name.cell(row=i+1,column=1).value)
+                if sheet_name.cell(row = i+1, column = 1).value != None:
+                    phone = (sheet_name.cell(row = i+1, column = 1).value)
                     print(phone)
 
-                if(clave['key'] in auxiliar and sheet_name.cell(row=i+1,column=clave['value']).value != None ):
-                    auxiliar = auxiliar.replace(clave['key'],str(sheet_name.cell(row=i+1,column=clave['value']).value))
+                if(clave['key'] in message and sheet_name.cell(row = i+1, column = clave['value']).value != None ):
+                    message = message.replace(clave['key'], str(sheet_name.cell(row = i+1, column=clave['value']).value))
                 else:
-                    auxiliar=auxiliar.replace(clave['key'], "")
+                    message=message.replace(clave['key'], "")
 
-            if sheet_name.cell(row=i+1,column=1).value !=None:
+            if sheet_name.cell(row=i+1, column=1).value !=None:
                 
                 #Crear url individual
-                auxiliar=  self.has_individual_url(sms_campaign,campaign,auxiliar)
+                message=  self.has_individual_url(sms_campaign, campaign, message)
 
-                auxiliar = self.standardize_message(auxiliar)
+                message = self.standardize_message(message)
 
                 phone_status = self.validate_phone(phone)
 
-                credit = self.calculate_credits(auxiliar)
+                credit = self.calculate_credits(message)
 
                 # seleccionar el proveedor
                 # if(phone_status == 1 ):
-                response = self.send_sms_to_provider(user[8],auxiliar)
+                response = self.send_sms_to_provider(user[8], message, phone)
 
                 #Mandar datos para crear sms
-                result = self.send_sms(credit,sms_campaign,auxiliar,phone ,response, campaign,user)
+                result = self.send_sms(credit,sms_campaign,message,phone ,response, campaign,user)
 
                 print("cccccccccccccccccccccccccccccccccccccc")
 
