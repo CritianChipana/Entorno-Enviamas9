@@ -154,7 +154,7 @@ class Controller(object):
         selft.view = View()
 
     def send_sms_by_agenda(self, campaign, contacts_by_agenda, sms_campaign):
-        
+
         user = self.model.select_user(user_id)
 
         user_id = campaign[5]
@@ -247,7 +247,7 @@ class Controller(object):
         payload = {
                     'credit': credit,
                     "is_push": sms_campaign[3],
-                    "content": auxiliar,
+                    "content": message,
                     "phone": phone,
                     "status": 'DELIVERED',
                     "comment": "",
@@ -460,9 +460,11 @@ class Controller(object):
         f.write('\n' + 'Enviando por el canal con id: ' + str(channel_id))
 
         channel = self.model.select_channel_by_id(channel_id)
+
         provider_id = channel[10]
         api_key = channel[4]
         dial = channel[5]
+
         f.write('\n' + 'Enviando por el provider con id: ' + str(provider_id))
 
         if( provider_id == 1 ):
@@ -484,7 +486,7 @@ class Controller(object):
                 'Content-Type': 'application/json'
                 }
 
-                response = requests.request("POST", config('ENDPOINT_PROVEEDOR'), headers=headers, data=payload)
+                response = requests.request("POST", config('ENDPOINT_PROVEEDOR'), headers =headers, data=payload)
                 dataJson = response.json()
                 mailingId = dataJson['mailingId']
                 print(response)
@@ -498,43 +500,6 @@ class Controller(object):
 
                 print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
                 print("No se pudo enviar mensaje por el proveedor 1")
-                print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
-                
-                return None
-
-        else:
-
-            try:
-
-                payload =   {
-                    "dataCoding": "SADS8",
-                    "apiKey": channel[4],
-                    "country": "PE",
-                    "dial": channel[5],
-                    "message": message,
-                    "msisdns": "GSrr {}",
-                    "tag": "Gassa",
-                    "msgClass": "Gasas8 {}"
-                }
-
-                headers = {
-                    'Content-Type': "application/json",
-                    'Authorization': str(channel[6]),
-                    'cache-control': "no-cache"
-                    }
-
-                response = requests.post(config('ENDPOINT_PROVEEDOR'),headers=headers,data=payload)
-                dataJson = response.json()
-                data_text = response.text
-
-                return json.dumps(payload), data_text, dataJson['mailingId']
-            
-            except Exception as e: 
-                f.write('\n' + 'ERROR!!!!: ' + 'No se pudo enviar mensaje por el proveedor: ' + str(provider_id) + '  veriique el payload o la ruta de destino')
-                f.write('\n' + str(e))
-
-                print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
-                print("No se pudo enviar mensaje por el proveedor 2")
                 print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
                 
                 return None

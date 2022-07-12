@@ -1,0 +1,23 @@
+***** campaña seleccionada ******
+id de campana: 24
+El usuario tiene el id:2
+hora de envio de sms de la campaña:2022-07-12 18:55:12.105967
+La campana no esta agendada 
+Actualizando el estado de la campaña a : 3 
+Es una campaña creada por excel, el id del excel es: 115
+El usuario usa el channel: 1
+El email del usuario es: lourdes.alvarador1@gmail.com
+*********** Inicio de envio de sms ******************
+Enviando por el canal con id: 1
+Enviando por el provider con id: 1
+hora de envio de sms:2022-07-12 18:55:12.320054
+datos del sms:
+ {'credit': 1, 'is_push': 0, 'content': 'asdas', 'phone': 94571290, 'status': 'DELIVERED', 'comment': '', 'response': '{"code":0,"mailingId":155362181035,"result":"Applied"}', 'message_id': 155362181035, 'payload': '"{\\"apiKey\\": \\"35\\", \\"country\\": \\"PE\\", \\"dial\\": \\"3232\\", \\"message\\": \\"asdas\\", \\"msisdns\\": [\\"5194571290\\"], \\"tag\\": \\"Desde ENVIAMAS v2\\", \\"mask\\": \\"BACKUS\\"}"', 'user_id': 2, 'campaign_id': 24, 'channel_id': 1, 'created_at': datetime.datetime(2022, 7, 12, 18, 55, 12, 320041), 'updated_at': datetime.datetime(2022, 7, 12, 18, 55, 12, 320051)}
+
+Enviando por el canal con id: 1
+Enviando por el provider con id: 1
+hora de envio de sms:2022-07-12 18:55:12.337036
+datos del sms:
+ {'credit': 1, 'is_push': 0, 'content': 'asdas', 'phone': 94571290, 'status': 'DELIVERED', 'comment': '', 'response': '{"code":0,"mailingId":575592247536,"result":"Applied"}', 'message_id': 575592247536, 'payload': '"{\\"apiKey\\": \\"35\\", \\"country\\": \\"PE\\", \\"dial\\": \\"3232\\", \\"message\\": \\"asdas\\", \\"msisdns\\": [\\"5194571290\\"], \\"tag\\": \\"Desde ENVIAMAS v2\\", \\"mask\\": \\"BACKUS\\"}"', 'user_id': 2, 'campaign_id': 24, 'channel_id': 1, 'created_at': datetime.datetime(2022, 7, 12, 18, 55, 12, 337021), 'updated_at': datetime.datetime(2022, 7, 12, 18, 55, 12, 337030)}
+
+Actualizando el estado de la campaña a : 1 
