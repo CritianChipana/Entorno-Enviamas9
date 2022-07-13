@@ -464,6 +464,7 @@ class Controller(object):
         provider_id = channel[10]
         api_key = channel[5]
         dial = channel[6]
+        aas
 
         f.write('\n' + 'Enviando por el provider con id: ' + str(provider_id))
 
