@@ -464,6 +464,7 @@ class Controller(object):
         provider_id = channel[10]
         api_key = channel[5]
         dial = channel[6]
+        authorization = channel[7]
 
         f.write('\n' + 'Enviando por el provider con id: ' + str(provider_id))
 
@@ -483,7 +484,7 @@ class Controller(object):
                 })
 
                 headers = {
-                    'Authorization': '7ur9Vzb7SLtwmQi4ohqNP02yUb4=',
+                    'Authorization': str(authorization),
                     'Content-Type': 'application/json'
                 }
 
