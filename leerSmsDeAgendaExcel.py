@@ -462,8 +462,8 @@ class Controller(object):
         channel = self.model.select_channel_by_id(channel_id)
 
         provider_id = channel[10]
-        api_key = channel[4]
-        dial = channel[5]
+        api_key = channel[5]
+        dial = channel[6]
 
         f.write('\n' + 'Enviando por el provider con id: ' + str(provider_id))
 
