@@ -483,10 +483,11 @@ class Controller(object):
                 })
 
                 headers = {
-                'Content-Type': 'application/json'
+                    'Authorization': '7ur9Vzb7SLtwmQi4ohqNP02yUb4=',
+                    'Content-Type': 'application/json'
                 }
 
-                response = requests.request("POST", config('ENDPOINT_PROVEEDOR'), headers =headers, data=payload)
+                response = requests.request("POST", config('ENDPOINT_PROVEEDOR'), headers = headers, data=payload)
                 dataJson = response.json()
                 mailingId = dataJson['mailingId']
                 print(response)
