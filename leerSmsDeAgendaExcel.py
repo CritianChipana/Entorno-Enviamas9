@@ -127,7 +127,7 @@ class Model:
         sql = "SELECT * FROM channels where id = {} ".format(channel_id)
         
         print('holis')
-        print(sql[11])
+        print(channel_id)
 
         try:
             self.cursor.execute(sql)
