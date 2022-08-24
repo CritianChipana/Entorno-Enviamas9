@@ -155,11 +155,11 @@ class Controller(object):
 
     def send_sms_by_agenda(self, campaign, contacts_by_agenda, sms_campaign):
 
-        user = self.model.select_user(user_id)
-
         user_id = campaign[5]
         user_chanel_id = user[8]
         user_email = user[2]
+
+        user = self.model.select_user(user_id)
         
         f.write('\n' + 'El usuario usa el channel: ' + str(user_chanel_id))
         f.write('\n' + 'El email del usuario es: ' + str(user_email))
@@ -482,8 +482,6 @@ class Controller(object):
                     "tag": "Desde ENVIAMAS v2",
                     "mask": "BACKUS"
                 })
-
-                
 
                 headers = {
                     'Authorization': str(authorization),
