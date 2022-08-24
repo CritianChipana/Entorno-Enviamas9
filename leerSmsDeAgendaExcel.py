@@ -125,6 +125,10 @@ class Model:
 
     def select_channel_by_id(self, channel_id):
         sql = "SELECT * FROM channels where id = {} ".format(channel_id)
+        
+        print('holis')
+        print(sql[11])
+
         try:
             self.cursor.execute(sql)
             channel = self.cursor.fetchone()
