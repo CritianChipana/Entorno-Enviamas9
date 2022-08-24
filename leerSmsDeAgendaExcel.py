@@ -462,7 +462,7 @@ class Controller(object):
 
         channel = self.model.select_channel_by_id(channel_id)
 
-        provider_id = channel[10]
+        provider_id = channel[11]
         api_key = channel[5]
         dial = channel[6]
         authorization = channel[7]
