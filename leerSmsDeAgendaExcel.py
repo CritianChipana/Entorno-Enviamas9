@@ -172,19 +172,19 @@ class Controller(object):
 
         key_contacts = [
             {
-                "key": "[NOMBRE 1]",
+                "key": "[NOMBRE1]",
                 "value": 2,
             },
             {
-                "key": "[NOMBRE 2]",
+                "key": "[NOMBRE2]",
                 "value": 3,
             },
             {
-                "key": "[APELLIDO 1]",
+                "key": "[APELLIDO1]",
                 "value": 5,
             },
             {
-                "key": "[APELLIDO 2]",
+                "key": "[APELLIDO2]",
                 "value": 6,
             },
             {
