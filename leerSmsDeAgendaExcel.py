@@ -246,33 +246,7 @@ class Controller(object):
 
 
         print(contact[0])
-    
-    def send_sms(self,credit, sms_campaign, message, phone, response ,campaign,user):
-        print('se envio sms')
-        payload = {
-                    'credit': credit,
-                    "is_push": sms_campaign[3],
-                    "content": message,
-                    "phone": phone,
-                    "status": 'DELIVERED',
-                    "comment": "",
-                    "response": response[1],
-                    "message_id": response[2],
-                    "payload": str(response[0]),
-                    "user_id": campaign[5],
-                    "campaign_id": sms_campaign[7],
-                    "channel_id": user[8],
-                    "created_at": datetime.now(),
-                    "updated_at":datetime.now()
-                }
-        f.write('\n' + 'hora de envio de sms:' + str(datetime.now()))
-        f.write('\n' + 'datos del sms:')
-        f.write(f'\n {repr(payload)}')
-        f.write(f'\n')
-        
-        
-        sms = self.model.crear_sms(payload)
-        return sms
+
 
     def read_excel(self, path, sms_campaign, campaign):
 
@@ -349,13 +323,44 @@ class Controller(object):
                 credit = self.calculate_credits(message)
 
                 # seleccionar el proveedor
-                # if(phone_status == 1 ):
-                response = self.send_sms_to_provider(user[8], message, phone)
+                if(phone_status):
+                    response = self.send_sms_to_provider(user[8], message, phone)
+                    response = list(response)
+                    response.append('DELIVERED')
+                else: 
+                    response = ('a','b',0,'REJECTED')
 
                 #Mandar datos para crear sms
                 result = self.send_sms(credit,sms_campaign,message,phone ,response, campaign,user)
 
                 print("cccccccccccccccccccccccccccccccccccccc")
+    
+    def send_sms(self,credit, sms_campaign, message, phone, response ,campaign,user):
+        print('se envio sms')
+        payload = {
+                    'credit': credit,
+                    "is_push": sms_campaign[3],
+                    "content": message,
+                    "phone": phone,
+                    "status": response[3],
+                    "comment": "",
+                    "response": response[1],
+                    "message_id": response[2],
+                    "payload": str(response[0]),
+                    "user_id": campaign[5],
+                    "campaign_id": sms_campaign[7],
+                    "channel_id": user[8],
+                    "created_at": datetime.now(),
+                    "updated_at":datetime.now()
+                }
+        f.write('\n' + 'hora de envio de sms:' + str(datetime.now()))
+        f.write('\n' + 'datos del sms:')
+        f.write(f'\n {repr(payload)}')
+        f.write(f'\n')
+        
+        
+        sms = self.model.crear_sms(payload)
+        return sms
 
     def create_cut_url(self, long_url):
         payload = json.dumps({
@@ -413,9 +418,9 @@ class Controller(object):
 
         if( len(str(phone)) == 9  and type(phone) == int):
             print('Numero valido')
-            return 1
+            return True
         else:
-            return 0
+            return False
 
     def has_individual_url(self, sms_campaign, campaign, auxiliar):
         
