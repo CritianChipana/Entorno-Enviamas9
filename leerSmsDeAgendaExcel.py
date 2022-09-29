@@ -233,12 +233,16 @@ class Controller(object):
             message = self.standardize_message(message)
             number = contact[1]
             credit = self.calculate_credits(message)
-            
-            # seleccionar el proveedor
-            response = self.send_sms_to_provider(user_chanel_id, message, number)
 
-            if(response == None):
-                exit()
+            phone_status = self.validate_phone(int(number))
+
+            # seleccionar el proveedor
+            if(phone_status):
+                response = self.send_sms_to_provider(user_chanel_id, message, number)
+                response = list(response)
+                response.append('DELIVERED')
+            else: 
+                response = ('a','b',0,'REJECTED')
 
             # mandar la informacion para crear el sms
             result = self.send_sms(credit,sms_campaign,message,contact[1] , response, campaign,user)
