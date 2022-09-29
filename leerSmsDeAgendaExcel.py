@@ -150,7 +150,6 @@ class Model:
     def close(self):
         self.connection.close()
 
-
 class Controller(object):
 
     def __init__(selft):
@@ -362,9 +361,10 @@ class Controller(object):
         "url_register": long_url,
         "type": 2
         })
+        
         headers = {
-        'Authorization': 'Basic YXBwQGVudmlhbWFzLnBlOkRldmVsb3BtZW50JCQyMDIy',
-        'Content-Type': 'application/json'
+            'Authorization': 'Basic ZW52aWFtYXNAZW52aWFtYXMucGU6MTIzNDU2Nzg=',
+            'Content-Type': 'application/json'
         }
 
         response = requests.post(config('ENDPOINT_CUT_PE'), headers=headers, data=payload)
@@ -450,6 +450,7 @@ class Controller(object):
                 
                 print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
                 print("Ocurrio un Problema a la hora de cortar url, No se pudo crear url personalizado")
+                print(str(e))
                 print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
                 # exit()
                 # sys.exit()
@@ -571,9 +572,6 @@ class Controller(object):
             self.model.change_state_campaign(campaign[0], 1)
 
             return self.view.list_campaign(campaign)
-
-
-
 
 
 # enviarlos datos a la vista
