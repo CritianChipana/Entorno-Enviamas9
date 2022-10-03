@@ -502,7 +502,8 @@ class Controller(object):
                 response = requests.request("POST", config('ENDPOINT_PROVEEDOR'), headers = headers, data=payload)
                 dataJson = response.json()
                 mailingId = dataJson['mailingId']
-                print(response)
+                print("Respuesta de proveedor:")
+                print(response.text)
                 data_text = response.text
 
                 return json.dumps(payload), data_text, mailingId
