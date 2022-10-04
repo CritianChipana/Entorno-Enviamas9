@@ -162,7 +162,7 @@ class Controller(object):
 
         user = self.model.select_user(user_id)
 
-        user_chanel_id = user[8]
+        user_chanel_id = user[7]
         user_email = user[2]
         
         f.write('\n' + 'El usuario usa el channel: ' + str(user_chanel_id))
