@@ -317,10 +317,9 @@ class Controller(object):
 
             if sheet_name.cell(row=i+1, column=1).value !=None:
                 
+                message = self.standardize_message(message)
                 #Crear url individual
                 message=  self.has_individual_url(sms_campaign, campaign, message)
-
-                message = self.standardize_message(message)
 
                 phone_status = self.validate_phone(phone)
 
