@@ -157,6 +157,19 @@ class Model:
             print(e)
             return False
 
+    def create_sms_url(self, data):
+        print('crear url')
+        sql = "INSERT INTO `sms_url`(`sms_id`, `url_id`, `created_at`, `updated_at`) VALUES ({},{},'{}','{}')".format(data['sms_id'],data['url_id'],data['created_at'],data['updated_at'],)
+
+        try:
+            self.cursor.execute(sql)
+            self.connection.commit()
+        
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
     def close(self):
         self.connection.close()
 
@@ -372,14 +385,23 @@ class Controller(object):
         
         
 
-        sms = self.model.crear_sms(payload)
+        sms_id = self.model.crear_sms(payload)
         print('7777777777777777')
-        print(sms)
+        print(sms_id)
         if(self.new_url):
             #CREAR TABA PARA RELACIONAR SMS CON URL
+            payload_url = {
+                    'sms_id': sms_id,
+                    'url_id': self.new_url,
+                    'created_at':datetime.now(),
+                    'updated_at':datetime.now(),
+                }
+            self.new_url = self.model.create_sms_url(payload_url)
+
+
             print(self.new_url)
         print('7777777777777777')
-        return sms
+        return sms_id
 
     def create_cut_url(self, long_url):
         payload = json.dumps({
@@ -573,7 +595,7 @@ class Controller(object):
 
                 #TODO: CAMBIAR EL STATUS DE CAMPAÑA A PROCESANDO 3
                 f.write('\n' + 'Actualizando el estado de la campaña a : 3 ')
-                # self.model.change_state_campaign(campaign[0], 3)
+                self.model.change_state_campaign(campaign[0], 3)
 
                 if(is_excel):
                     print('leer rows y guardarlos en una variable')
@@ -596,7 +618,7 @@ class Controller(object):
             print('****************** -- for')
             # TODO: CAMBIAR EL ESTADO DE LA CAMPANA
             f.write('\n' + 'Actualizando el estado de la campaña a : 1 ')
-            # self.model.change_state_campaign(campaign[0], 1)
+            self.model.change_state_campaign(campaign[0], 1)
 
             return self.view.list_campaign(campaign)
 
