@@ -16,6 +16,8 @@ from math import ceil
 
 class Model:
 
+    new_url = None
+
     def __init__(self):
         self.connection = pymysql.connect(
             host=config('MYSQL_HOST'),
@@ -62,11 +64,14 @@ class Model:
     def crear_sms(self, payload):
         sql = "INSERT INTO sms (credit, is_push, content, phone, status, comment, response, message_id ,payload ,user_id, campaign_id, channel_id,created_at,updated_at) VALUES ({},{},'{}','{}','{}','{}','{}',{},'{}',{},{},{},'{}','{}')".format(
             payload['credit'], payload['is_push'], payload['content'], payload['phone'], payload['status'], payload['comment'], payload['response'], payload['message_id'],payload['payload'],payload['user_id'], payload['campaign_id'], payload['channel_id'],payload['created_at'], payload['updated_at'])
+        sql2 = "SELECT LAST_INSERT_ID()"
         try:
             self.cursor.execute(sql)
             self.connection.commit()
+            self.cursor.execute(sql2)
+            sms_id = self.cursor.fetchone()
             print('se creo sms')
-            return True
+            return sms_id[0]
         except Exception as e:
             print(e)
             return False
@@ -106,9 +111,14 @@ class Model:
     def create_url(self, data):
         print('crear url')
         sql = "INSERT INTO `urls`(`name`, `short_url`, `long_url`, `user_id`, `group_url_id`, `url_id`, `status`, `state`, `created_at`, `updated_at`) VALUES ('{}','{}','{}',{},{},'{}',{},{},'{}','{}')".format(data['name'],data['short_url'],data['long_url'],data['user_id'],data['group_url_id'],data['url_id'],data['status'],data['state'],data['created_at'],data['updated_at'],)
+        sql2 = "SELECT LAST_INSERT_ID()"
+
         try:
             self.cursor.execute(sql)
             self.connection.commit()
+            self.cursor.execute(sql2)
+            new_url_id = self.cursor.fetchone()
+            return new_url_id[0]
         except Exception as e:
             print(e)
             return False
@@ -361,7 +371,14 @@ class Controller(object):
         f.write(f'\n')
         
         
+
         sms = self.model.crear_sms(payload)
+        print('7777777777777777')
+        print(sms)
+        if(self.new_url):
+            #CREAR TABA PARA RELACIONAR SMS CON URL
+            print(self.new_url)
+        print('7777777777777777')
         return sms
 
     def create_cut_url(self, long_url):
@@ -371,7 +388,7 @@ class Controller(object):
         })
         
         headers = {
-            'Authorization': 'Basic ZW52aWFtYXNAZW52aWFtYXMucGU6MTIzNDU2Nzg=',
+            'Authorization': 'Basic YXBwQGVudmlhbWFzLnBlOkRldmVsb3BtZW50JCQyMDIy=',
             'Content-Type': 'application/json'
         }
 
@@ -448,7 +465,7 @@ class Controller(object):
                     'created_at':datetime.now(),
                     'updated_at':datetime.now(),
                 }
-                new_url = self.model.create_url(payload_url)
+                self.new_url = self.model.create_url(payload_url)
 
                 return auxiliar
 
@@ -466,6 +483,7 @@ class Controller(object):
                 return None
 
         else: 
+            self.new_url = None
             return auxiliar
 
     def send_sms_to_provider(self, channel_id, message, number):
@@ -555,7 +573,7 @@ class Controller(object):
 
                 #TODO: CAMBIAR EL STATUS DE CAMPAÑA A PROCESANDO 3
                 f.write('\n' + 'Actualizando el estado de la campaña a : 3 ')
-                self.model.change_state_campaign(campaign[0], 3)
+                # self.model.change_state_campaign(campaign[0], 3)
 
                 if(is_excel):
                     print('leer rows y guardarlos en una variable')
@@ -578,7 +596,7 @@ class Controller(object):
             print('****************** -- for')
             # TODO: CAMBIAR EL ESTADO DE LA CAMPANA
             f.write('\n' + 'Actualizando el estado de la campaña a : 1 ')
-            self.model.change_state_campaign(campaign[0], 1)
+            # self.model.change_state_campaign(campaign[0], 1)
 
             return self.view.list_campaign(campaign)
 
