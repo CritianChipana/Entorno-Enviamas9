@@ -278,7 +278,9 @@ class Controller(object):
 
         user = self.model.select_user(campaign[5])
 
-        f.write('\n' + 'El usuario usa el channel: ' + str(user[8]))
+        f.write('\n' + 'El usuario usa el channel: ' + str(user[7]))
+        user_chanel_id = user[7]
+
         f.write('\n' + 'El email del usuario es: ' + str(user[2]))
         f.write('\n' + '*********** Inicio de envio de sms ******************')
         # leer el archivo opcion 1
@@ -349,7 +351,7 @@ class Controller(object):
 
                 # seleccionar el proveedor
                 if(phone_status):
-                    response = self.send_sms_to_provider(user[8], message, phone)
+                    response = self.send_sms_to_provider(user_chanel_id, message, phone)
                     response = list(response)
                     response.append('DELIVERED')
                 else: 
@@ -362,6 +364,9 @@ class Controller(object):
     
     def send_sms(self,credit, sms_campaign, message, phone, response ,campaign,user):
         print('se envio sms')
+        if  response[3] == "REJECTED":
+            credit = 0
+
         payload = {
                     'credit': credit,
                     "is_push": sms_campaign[3],
@@ -374,7 +379,7 @@ class Controller(object):
                     "payload": str(response[0]),
                     "user_id": campaign[5],
                     "campaign_id": sms_campaign[7],
-                    "channel_id": user[8],
+                    "channel_id": user[7],
                     "created_at": datetime.now(),
                     "updated_at":datetime.now()
                 }
