@@ -256,7 +256,12 @@ class Controller(object):
             number = contact[1]
             credit = self.calculate_credits(message)
 
-            phone_status = self.validate_phone(int(number))
+            try:
+                phone_status = self.validate_phone(int(number))
+            except ValueError:
+                phone_status = False
+                pass    
+
 
             # seleccionar el proveedor
             if(phone_status):
