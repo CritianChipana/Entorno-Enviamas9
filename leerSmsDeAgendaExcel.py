@@ -62,8 +62,8 @@ class Model:
             raise
 
     def crear_sms(self, payload):
-        sql = "INSERT INTO sms (credit, is_push, content, phone, status, comment, response, message_id ,payload ,user_id, campaign_id, channel_id,created_at,updated_at) VALUES ({},{},'{}','{}','{}','{}','{}',{},'{}',{},{},{},'{}','{}')".format(
-            payload['credit'], payload['is_push'], payload['content'], payload['phone'], payload['status'], payload['comment'], payload['response'], payload['message_id'],payload['payload'],payload['user_id'], payload['campaign_id'], payload['channel_id'],payload['created_at'], payload['updated_at'])
+        sql = "INSERT INTO sms (credit, is_push, content, phone, status, comment, response, message_id ,payload ,user_id, campaign_id, channel_id,created_at,updated_at, send_at) VALUES ({},{},'{}','{}','{}','{}','{}',{},'{}',{},{},{},'{}','{}', '{}')".format(
+            payload['credit'], payload['is_push'], payload['content'], payload['phone'], payload['status'], payload['comment'], payload['response'], payload['message_id'],payload['payload'],payload['user_id'], payload['campaign_id'], payload['channel_id'],payload['created_at'], payload['updated_at'], payload['send_at'])
         sql2 = "SELECT LAST_INSERT_ID()"
         try:
             self.cursor.execute(sql)
@@ -386,7 +386,8 @@ class Controller(object):
                     "campaign_id": sms_campaign[7],
                     "channel_id": user[7],
                     "created_at": datetime.now(),
-                    "updated_at":datetime.now()
+                    "updated_at":datetime.now(),
+                    "send_at":datetime.now()
                 }
         f.write('\n' + 'hora de envio de sms:' + str(datetime.now()))
         f.write('\n' + 'datos del sms:')
