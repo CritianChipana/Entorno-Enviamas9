@@ -544,7 +544,9 @@ class Controller(object):
                         '51' + str(number)
                     ],
                     "tag": "Desde ENVIAMAS v2",
-                    "mask": "BACKUS"
+                    "mask": "BACKUS",
+                    "dlr": True,
+                    "optionals": "{registeredDelivery:11}"
                 })
 
                 headers = {
