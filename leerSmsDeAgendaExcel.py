@@ -62,8 +62,9 @@ class Model:
             raise
 
     def crear_sms(self, payload):
-        sql = "INSERT INTO sms (credit, is_push, content, phone, status, comment, response, message_id ,payload ,user_id, campaign_id, channel_id,created_at,updated_at, send_at) VALUES ({},{},'{}','{}','{}','{}','{}',{},'{}',{},{},{},'{}','{}', '{}')".format(
-            payload['credit'], payload['is_push'], payload['content'], payload['phone'], payload['status'], payload['comment'], payload['response'], payload['message_id'],payload['payload'],payload['user_id'], payload['campaign_id'], payload['channel_id'],payload['created_at'], payload['updated_at'], payload['send_at'])
+        print('rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr')
+        sql = "INSERT INTO sms (credit, is_push, content, phone, status, commit, response, message_id ,payload ,user_id, campaign_id, channel_id,created_at,updated_at, send_at) VALUES ({},{},'{}','{}','{}','{}','{}',{},'{}',{},{},{},'{}','{}', '{}')".format(
+            payload['credit'], payload['is_push'], payload['content'], payload['phone'], payload['status'], payload['commit'], payload['response'], payload['message_id'],payload['payload'],payload['user_id'], payload['campaign_id'], payload['channel_id'],payload['created_at'], payload['updated_at'], payload['send_at'])
         sql2 = "SELECT LAST_INSERT_ID()"
         try:
             self.cursor.execute(sql)
@@ -265,7 +266,7 @@ class Controller(object):
 
             # seleccionar el proveedor
             if(phone_status):
-                response = self.send_sms_to_provider(user_chanel_id, message, number)
+                response = self.send_sms_to_provider(user_chanel_id, message, number, campaign)
                 response = list(response)
                 response.append('DELIVERED')
             else: 
@@ -356,7 +357,7 @@ class Controller(object):
 
                 # seleccionar el proveedor
                 if(phone_status):
-                    response = self.send_sms_to_provider(user_chanel_id, message, phone)
+                    response = self.send_sms_to_provider(user_chanel_id, message, phone, campaign)
                     response = list(response)
                     response.append('DELIVERED')
                 else: 
@@ -378,7 +379,7 @@ class Controller(object):
                     "content": message,
                     "phone": phone,
                     "status": response[3],
-                    "comment": "",
+                    "commit": "",
                     "response": response[1],
                     "message_id": response[2],
                     "payload": str(response[0]),
@@ -519,7 +520,7 @@ class Controller(object):
             self.new_url = None
             return auxiliar
 
-    def send_sms_to_provider(self, channel_id, message, number):
+    def send_sms_to_provider(self, channel_id, message, number, campaign):
 
         print('channel_id')
         f.write('\n' + 'Enviando por el canal con id: ' + str(channel_id))
@@ -530,6 +531,7 @@ class Controller(object):
         api_key = channel[5]
         dial = channel[6]
         authorization = channel[7]
+        mask = channel[14]
 
         f.write('\n' + 'Enviando por el provider con id: ' + str(provider_id))
 
@@ -544,8 +546,8 @@ class Controller(object):
                     "msisdns": [
                         '51' + str(number)
                     ],
-                    "tag": "Desde ENVIAMAS v2",
-                    "mask": "BACKUS"
+                    "tag": "ENVIAMAS2_" + str(campaign[0]),
+                    "mask": mask
                 })
 
                 headers = {
