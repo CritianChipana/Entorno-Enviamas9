@@ -547,7 +547,7 @@ class Controller(object):
                         '51' + str(number)
                     ],
                     "tag": "ENVIAMAS2_" + str(campaign[0]),
-                    "mask": mask
+                    "mask": mask,
                     "dlr": True,
                     "optionals": "{registeredDelivery:11}"
                 })
