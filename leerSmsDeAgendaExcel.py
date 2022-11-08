@@ -31,7 +31,7 @@ class Model:
 
     def select_all_campaign_agenda_excel_model(self):
         # pendiente 2 y agendado 4 el status de cada campaña
-        sql = 'SELECT * FROM campaigns where (campaign_type_id = 2 || campaign_type_id = 3) and service_id = 1 and (status = 2 || status = 4) order by scheduled asc '
+        sql = 'SELECT * FROM campaigns where (campaign_type_id = 1 || campaign_type_id = 2 || campaign_type_id = 3) and service_id = 1 and (status = 2 || status = 4) order by scheduled asc '
         # sql = 'SELECT * FROM campaigns where id=9'
         try:
             self.cursor.execute(sql)
@@ -267,8 +267,11 @@ class Controller(object):
             # seleccionar el proveedor
             if(phone_status):
                 response = self.send_sms_to_provider(user_chanel_id, message, number, campaign)
-                response = list(response)
-                response.append('DELIVERED')
+                if(response):
+                    response = list(response)
+                    response.append('DELIVERED')
+                else: 
+                    response = ('a','b',0,'REJECTED')
             else: 
                 response = ('a','b',0,'REJECTED')
 
@@ -279,6 +282,61 @@ class Controller(object):
 
         print(contact[0])
 
+    def send_sms_individuales(self, campaign, contacts, sms_campaign):
+
+        user_id = campaign[5]
+
+        user = self.model.select_user(user_id)
+
+        user_chanel_id = user[7]
+        user_email = user[2]
+        
+        f.write('\n' + 'El usuario usa el channel: ' + str(user_chanel_id))
+        f.write('\n' + 'El email del usuario es: ' + str(user_email))
+        f.write('\n' + '*********** Inicio de envio de sms ******************')
+
+      
+        
+        contador_de_sms_enviados = 0
+
+        for contact in contacts:
+            contador_de_sms_enviados = contador_de_sms_enviados + 1
+            f.write('\n' + 'Sms '+ str(contador_de_sms_enviados) + ' de '+ str(len(contacts)))
+
+            message = sms_campaign[2]
+
+            # usar url individual
+            message = self.has_individual_url(sms_campaign,campaign,message)
+
+            if( message == None ):
+                exit()
+            
+
+            message = self.standardize_message(message)
+            number = contact
+            credit = self.calculate_credits(message)
+
+            try:
+                phone_status = self.validate_phone(int(number))
+            except ValueError:
+                phone_status = False
+                pass    
+
+
+            # seleccionar el proveedor
+            if(phone_status):
+                response = self.send_sms_to_provider(user_chanel_id, message, number, campaign)
+                if(response):
+                    response = list(response)
+                    response.append('DELIVERED')
+                else: 
+                    response = ('a','b',0,'REJECTED')
+            else: 
+                response = ('a','b',0,'REJECTED')
+
+            # mandar la informacion para crear el sms
+            result = self.send_sms(credit,sms_campaign,message,contact , response, campaign,user)
+            print('///////////////////////////////////')
 
     def read_excel(self, path, sms_campaign, campaign):
 
@@ -358,8 +416,11 @@ class Controller(object):
                 # seleccionar el proveedor
                 if(phone_status):
                     response = self.send_sms_to_provider(user_chanel_id, message, phone, campaign)
-                    response = list(response)
-                    response.append('DELIVERED')
+                    if(response):
+                        response = list(response)
+                        response.append('DELIVERED')
+                    else: 
+                        response = ('a','b',0,'REJECTED')
                 else: 
                     response = ('a','b',0,'REJECTED')
 
@@ -559,6 +620,9 @@ class Controller(object):
 
                 response = requests.request("POST", config('ENDPOINT_PROVEEDOR'), headers = headers, data=payload)
                 dataJson = response.json()
+                print(1111111111111111111111111)
+                print(dataJson)
+                print(1111111111111111111111111)
                 mailingId = dataJson['mailingId']
                 print("Respuesta de proveedor:")
                 print(response.text)
@@ -619,13 +683,24 @@ class Controller(object):
                     # self.read_excel(r"C:\xampp\htdocs\enviamas9_production\public/storage/ExcelCampaing/Hola.xlsx", sms_campaign,campaign)
                     self.read_excel(config('PUBLIC_PATH_SMS_EXCEL') + excel_sms_campaign[1], sms_campaign,campaign)
 
-                else:
+                if ( campaign[6] == 2):
                     print('traer contactos de agendas y guardarlos en variable')
                     contacts_by_agenda = self.model.select_all_contact_by_agenda_model(campaign[4])
                     f.write('\n' + 'Es una campana creada por agenda, el id de la agenda es: ' + str(campaign[4]))
                     f.write('\n' + 'La agenda cuenta con un numero de contactos igual a: ' + str(len(contacts_by_agenda)))
                     sms_campaign = self.model.select_sms_campaign_by_id( campaign[0])
                     self.send_sms_by_agenda( campaign, contacts_by_agenda, sms_campaign)
+                
+                if ( campaign[6] == 1):
+                    print('traer contactos de agendas y guardarlos en variable')
+                    print('este es el individual!!!!!!!!!!!!!!')
+
+                    contactos = eval(campaign[4])
+                    print(contactos)
+                    print(contactos[0])
+                    print(contactos[1])
+                    sms_campaign = self.model.select_sms_campaign_by_id( campaign[0])
+                    self.send_sms_individuales( campaign, contactos, sms_campaign)
 
             else:
                 print("Esta agendado pero la echa programada ya paso")
