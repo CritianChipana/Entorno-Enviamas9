@@ -697,8 +697,6 @@ class Controller(object):
 
                     contactos = eval(campaign[4])
                     print(contactos)
-                    print(contactos[0])
-                    print(contactos[1])
                     sms_campaign = self.model.select_sms_campaign_by_id( campaign[0])
                     self.send_sms_individuales( campaign, contactos, sms_campaign)
 
