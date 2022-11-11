@@ -266,7 +266,7 @@ class Controller(object):
 
             # seleccionar el proveedor
             if(phone_status):
-                response = self.send_sms_to_provider(user_chanel_id, message, number, campaign)
+                response = self.send_sms_to_provider(user_chanel_id, message, number, campaign, sms_campaign)
                 if(response):
                     response = list(response)
                     response.append('DELIVERED')
@@ -325,7 +325,7 @@ class Controller(object):
 
             # seleccionar el proveedor
             if(phone_status):
-                response = self.send_sms_to_provider(user_chanel_id, message, number, campaign)
+                response = self.send_sms_to_provider(user_chanel_id, message, number, campaign, sms_campaign)
                 if(response):
                     response = list(response)
                     response.append('DELIVERED')
@@ -415,7 +415,7 @@ class Controller(object):
 
                 # seleccionar el proveedor
                 if(phone_status):
-                    response = self.send_sms_to_provider(user_chanel_id, message, phone, campaign)
+                    response = self.send_sms_to_provider(user_chanel_id, message, phone, campaign, sms_campaign)
                     if(response):
                         response = list(response)
                         response.append('DELIVERED')
@@ -581,7 +581,7 @@ class Controller(object):
             self.new_url = None
             return auxiliar
 
-    def send_sms_to_provider(self, channel_id, message, number, campaign):
+    def send_sms_to_provider(self, channel_id, message, number, campaign, sms_campaign):
 
         print('channel_id')
         f.write('\n' + 'Enviando por el canal con id: ' + str(channel_id))
@@ -610,6 +610,7 @@ class Controller(object):
                     "tag": "ENVIAMAS2_" + str(campaign[0]),
                     "mask": mask,
                     "dlr": True,
+                    "msgClass": sms_campaign[3],
                     "optionals": "{registeredDelivery:11}"
                 })
 
