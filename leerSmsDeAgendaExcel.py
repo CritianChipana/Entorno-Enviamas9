@@ -608,7 +608,7 @@ class Controller(object):
                         '51' + str(number)
                     ],
                     "tag": "ENVIAMAS2_" + str(campaign[0]),
-                    "mask": mask,
+                    "mask": not mask,
                     "dlr": True,
                     "msgClass": sms_campaign[3],
                     "optionals": "{registeredDelivery:11}"
@@ -618,7 +618,6 @@ class Controller(object):
                     'Authorization': str(authorization),
                     'Content-Type': 'application/json'
                 }
-
                 response = requests.request("POST", config('ENDPOINT_PROVEEDOR'), headers = headers, data=payload)
                 dataJson = response.json()
                 print(1111111111111111111111111)
