@@ -608,7 +608,7 @@ class Controller(object):
                         '51' + str(number)
                     ],
                     "tag": "ENVIAMAS2_" + str(campaign[0]),
-                    "mask": not mask,
+                    "mask": mask,
                     "dlr": True,
                     "msgClass": sms_campaign[3],
                     "optionals": "{registeredDelivery:11}"
