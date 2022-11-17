@@ -610,7 +610,7 @@ class Controller(object):
                     "tag": "ENVIAMAS2_" + str(campaign[0]),
                     "mask": mask,
                     "dlr": True,
-                    "msgClass": not sms_campaign[3],
+                    "msgClass": sms_campaign[3],
                     "optionals": "{registeredDelivery:11}"
                 })
 
