@@ -267,11 +267,11 @@ class Controller(object):
             # seleccionar el proveedor
             if(phone_status):
                 response = self.send_sms_to_provider(user_chanel_id, message, number, campaign, sms_campaign)
-                if(response):
-                    response = list(response)
+                response = list(response)
+                if(response[2] != 0):
                     response.append('DELIVERED')
-                else: 
-                    response = ('a','b',0,'REJECTED')
+                else:
+                    response.append('REJECTED')
             else: 
                 response = ('a','b',0,'REJECTED')
 
@@ -326,11 +326,11 @@ class Controller(object):
             # seleccionar el proveedor
             if(phone_status):
                 response = self.send_sms_to_provider(user_chanel_id, message, number, campaign, sms_campaign)
-                if(response):
-                    response = list(response)
+                response = list(response)
+                if(response[2] != 0):
                     response.append('DELIVERED')
-                else: 
-                    response = ('a','b',0,'REJECTED')
+                else:
+                    response.append('REJECTED')
             else: 
                 response = ('a','b',0,'REJECTED')
 
@@ -416,13 +416,13 @@ class Controller(object):
                 # seleccionar el proveedor
                 if(phone_status):
                     response = self.send_sms_to_provider(user_chanel_id, message, phone, campaign, sms_campaign)
-                    if(response):
-                        response = list(response)
+                    response = list(response)
+                    if(response[2] != 0):
                         response.append('DELIVERED')
-                    else: 
-                        response = ('a','b',0,'REJECTED')
+                    else:
+                        response.append('REJECTED')
                 else: 
-                    response = ('a','b',0,'REJECTED')
+                    response = ('no se envio mensaje por el status del numero','b',0,'REJECTED')
 
                 #Mandar datos para crear sms
                 result = self.send_sms(credit,sms_campaign,message,phone ,response, campaign,user)
@@ -597,7 +597,7 @@ class Controller(object):
         f.write('\n' + 'Enviando por el provider con id: ' + str(provider_id))
 
         if( provider_id == 1 ):
-
+# "Es bonito" if es_bonito else "No es bonito"
             try:
                 payload = json.dumps({
                     "apiKey": api_key,
@@ -610,7 +610,7 @@ class Controller(object):
                     "tag": "ENVIAMAS2_" + str(campaign[0]),
                     "mask": mask,
                     "dlr": True,
-                    "msgClass": sms_campaign[3],
+                    "msgClass": 0 if sms_campaign[3] == 1 else 1,
                     "optionals": "{registeredDelivery:11}"
                 })
 
@@ -638,7 +638,7 @@ class Controller(object):
                 print("No se pudo enviar mensaje por el proveedor 1")
                 print("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
                 
-                return None
+                return json.dumps(payload), response.text, 0
 
     def process_campaign(self):
         
