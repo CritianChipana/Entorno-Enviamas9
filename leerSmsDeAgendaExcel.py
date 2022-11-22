@@ -549,7 +549,7 @@ class Controller(object):
                 auxiliar = auxiliar.replace( '[CUSTOM_URL]', url['shortUrl'] )
 
                 payload_url = {
-                    'name':'url individual',
+                    'name':'URL individual',
                     'short_url':url['shortUrl'],
                     'long_url':sms_campaign[5],
                     "user_id": campaign[5],
