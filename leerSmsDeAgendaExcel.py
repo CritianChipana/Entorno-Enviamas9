@@ -529,13 +529,19 @@ class Controller(object):
         return message
 
     def validate_phone(self, phone):
-        print('validacion de celular')
+        try:
+          
+            print('validacion de celular')
+            phone = int(phone)
 
-        if( len(str(phone)) == 9  and type(phone) == int):
-            print('Numero valido')
-            return True
-        else:
-            return False
+            if( len(str(phone)) == 9  and type(phone) == int):
+                print('Numero valido')
+                return True
+            else:
+                return False
+        except Exception as e: 
+                return False
+               
 
     def has_individual_url(self, sms_campaign, campaign, auxiliar):
         
