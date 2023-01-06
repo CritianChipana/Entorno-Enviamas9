@@ -148,6 +148,17 @@ class Model:
             print(e)
             return False
 
+    def select_user_channels(self, user_id):
+        sql = "select c.*  from channel_user cu , users u , channels c where cu.user_id = u.id and c.id = cu.channel_id and u.id = {} ".format(user_id)
+
+        try:
+            self.cursor.execute(sql)
+            channels = self.cursor.fetchall()
+            return channels
+        except Exception as e:
+            print(e)
+            return False
+
     def send_sms_to_provider_by_id(self, provider_id):
         sql = "SELECT * FROM providers where id = {} ".format(provider_id)
         try:
@@ -431,6 +442,22 @@ class Controller(object):
     
     def send_sms(self,credit, sms_campaign, message, phone, response ,campaign,user):
         print('se envio sms')
+
+        channelsUser = self.model.select_user_channels(campaign[5])
+
+        # preguntar si la campaña fue lanzado ccomo bidireccional
+        channel_selected = 0
+        if not sms_campaign[1]:
+            channel_selected = channelsUser[0][0]
+            print("♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠")
+        else:
+            channel_selected = channelsUser[1][0]
+            print("☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻")
+
+        print("???????????????????????????????????????????????????????????????????????")
+        print(channel_selected)
+        print("???????????????????????????????????????????????????????????????????????")
+
         if  response[3] == "REJECTED":
             credit = 0
 
@@ -446,7 +473,7 @@ class Controller(object):
                     "payload": str(response[0]),
                     "user_id": campaign[5],
                     "campaign_id": sms_campaign[7],
-                    "channel_id": user[7],
+                    "channel_id": channel_selected,
                     "created_at": datetime.now(),
                     "updated_at":datetime.now(),
                     "send_at":datetime.now()
@@ -591,8 +618,30 @@ class Controller(object):
 
         print('channel_id')
         f.write('\n' + 'Enviando por el canal con id: ' + str(channel_id))
+        user_id = campaign[5]
+        # listar los channesl del usuario
+        channelsUser = self.model.select_user_channels(user_id)
 
-        channel = self.model.select_channel_by_id(channel_id)
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        print(channelsUser)
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        print(channelsUser[0][0])
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+
+        # preguntar si la campaña fue lanzado ccomo bidireccional
+        channel_selected = 0
+        if not sms_campaign[1]:
+            channel_selected = channelsUser[0][0]
+            print("♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠♠")
+        else:
+            channel_selected = channelsUser[1][0]
+            print("☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻")
+
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        print(channel_selected)
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+
+        channel = self.model.select_channel_by_id(channel_selected)
 
         provider_id = channel[11]
         api_key = channel[5]
