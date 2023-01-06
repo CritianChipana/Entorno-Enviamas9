@@ -1,4 +1,5 @@
-package_name = "version"
+
+python-decouple==3.1
 autopep8==1.6.0
 certifi==2021.10.8
 charset-normalizer==2.0.12
