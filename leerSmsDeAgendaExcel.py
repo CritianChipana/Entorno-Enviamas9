@@ -77,6 +77,22 @@ class Model:
             print(e)
             return False
 
+    def crear_sms_with_message_id(self, payload):
+        print('rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr')
+        sql = "INSERT INTO sms (credit, is_push, content, phone, status, commit, response, message_id ,payload ,user_id, campaign_id, channel_id,created_at,updated_at, send_at, message_id_external) VALUES ({},{},'{}','{}','{}','{}','{}',{},'{}',{},{},{},'{}','{}', '{}', {})".format(
+            payload['credit'], payload['is_push'], payload['content'], payload['phone'], payload['status'], payload['commit'], payload['response'], payload['message_id'],payload['payload'],payload['user_id'], payload['campaign_id'], payload['channel_id'],payload['created_at'], payload['updated_at'], payload['send_at'], payload['message_id'])
+        sql2 = "SELECT LAST_INSERT_ID()"
+        try:
+            self.cursor.execute(sql)
+            self.connection.commit()
+            self.cursor.execute(sql2)
+            sms_id = self.cursor.fetchone()
+            print('se creo sms')
+            return sms_id[0]
+        except Exception as e:
+            print(e)
+            return False
+
     def select_excel_sms_by_id (self,id):
         sql = 'SELECT * FROM excel_sms_campaigns WHERE campaign_id = {} '.format(id)
         try:
@@ -297,7 +313,7 @@ class Controller(object):
                 response = ('a','b',0,'REJECTED')
 
             # mandar la informacion para crear el sms
-            result = self.send_sms(credit,sms_campaign,message,contact[1] , response, campaign,user)
+            result = self.send_sms(credit,sms_campaign,message,contact[1] , response, campaign,user, None)
             print('///////////////////////////////////')
 
 
@@ -356,7 +372,7 @@ class Controller(object):
                 response = ('a','b',0,'REJECTED')
 
             # mandar la informacion para crear el sms
-            result = self.send_sms(credit,sms_campaign,message,contact , response, campaign,user)
+            result = self.send_sms(credit,sms_campaign,message,contact , response, campaign,user, None)
             print('///////////////////////////////////')
 
     def read_excel(self, path, sms_campaign, campaign):
@@ -446,49 +462,68 @@ class Controller(object):
                     response = ('no se envio mensaje por el status del numero','b',0,'REJECTED')
 
                 #Mandar datos para crear sms
-                result = self.send_sms(credit,sms_campaign,message,phone ,response, campaign,user)
+                result = self.send_sms(credit,sms_campaign,message,phone ,response, campaign,user, None)
 
                 print("cccccccccccccccccccccccccccccccccccccc")
     
     def read_json(self, path, sms_campaign, campaign):
-        user = self.model.select_user(campaign[5])
-        self.new_url = None
+        
+        try:
+            
+            user = self.model.select_user(campaign[5])
+            self.new_url = None
 
-        f.write('\n' + 'El usuario usa el channel: ' + str(user[7]))
-        user_chanel_id = user[7]
-        f.write('\n' + 'El email del usuario es: ' + str(user[2]))
-        f.write('\n' + '*********** Inicio de envio de sms ******************')
-        with open(path, 'r') as fe:
-            data = json.load(fe)
-        print(7)
-        print(data[0]['phone'])
+            f.write('\n' + 'El usuario usa el channel: ' + str(user[7]))
+            user_chanel_id = user[7]
+            f.write('\n' + 'El email del usuario es: ' + str(user[2]))
+            f.write('\n' + '*********** Inicio de envio de sms ******************')
+            with open(path, 'r') as fe:
+                data = json.load(fe)
+            print(7)
+            print(data[0]['phone'])
 
-        for i in range(0,len(data)):
-            phone = data[i]['phone']
-            message = data[i]['text']
-            message = self.standardize_message(message)
+            for i in range(0,len(data)):
+                if "phone" in data[i]:
+                    phone = data[i]['phone']
+                else: 
+                    phone = None
 
-            phone_status = self.validate_phone(phone)
+                if "text" in data[i]:
+                    message = data[i]['text']
+                else: 
+                    message = ""
 
-            credit = self.calculate_credits(message)
+                if "message_id" in data[i]:
+                    message_id = data[i]['message_id']
+                else: 
+                    message_id = None
 
-            # seleccionar el proveedor
-            if(phone_status):
-                response = self.send_sms_to_provider(user_chanel_id, message, phone, campaign, sms_campaign)
-                response = list(response)
-                if(response[2] != 0):
-                    response.append('DELIVERED')
-                else:
-                    response.append('REJECTED')
-            else: 
-                response = ('no se envio mensaje por el status del numero','b',0,'REJECTED')
+                message = self.standardize_message(message)
 
-            #Mandar datos para crear sms
-            result = self.send_sms(credit,sms_campaign,message,phone ,response, campaign,user)
+                phone_status = self.validate_phone(phone)
 
-            print("cccccccccccccccccccccccccccccccccccccc")  
+                credit = self.calculate_credits(message)
 
-    def send_sms(self,credit, sms_campaign, message, phone, response ,campaign,user):
+                # seleccionar el proveedor
+                if(phone_status):
+                    response = self.send_sms_to_provider(user_chanel_id, message, phone, campaign, sms_campaign)
+                    response = list(response)
+                    if(response[2] != 0):
+                        response.append('DELIVERED')
+                    else:
+                        response.append('REJECTED')
+                else: 
+                    response = ('no se envio mensaje por el status del numero','b',0,'REJECTED')
+
+                #Mandar datos para crear sms
+                result = self.send_sms(credit,sms_campaign,message,phone ,response, campaign,user, message_id)
+
+                print("cccccccccccccccccccccccccccccccccccccc")  
+        except KeyError:
+            f.write('No se pudo enviar sms', data)
+            print('Nooooooooooooooooooooooooooooo')
+
+    def send_sms(self,credit, sms_campaign, message, phone, response ,campaign,user, message_id):
         print('se envio sms')
 
         channelsUser = self.model.select_user_channels(campaign[5])
@@ -526,14 +561,20 @@ class Controller(object):
                     "updated_at":datetime.now(),
                     "send_at":datetime.now()
                 }
+        if message_id != None: 
+            payload['message_id'] = message_id
+
         f.write('\n' + 'hora de envio de sms:' + str(datetime.now()))
         f.write('\n' + 'datos del sms:')
         f.write(f'\n {repr(payload)}')
         f.write(f'\n')
         
         
+        if message_id != None:
+            sms_id = self.model.crear_sms_with_message_id(payload)
+        else:
+            sms_id = self.model.crear_sms(payload)
 
-        sms_id = self.model.crear_sms(payload)
         print('7777777777777777')
         print(sms_id)
         if(self.new_url):
