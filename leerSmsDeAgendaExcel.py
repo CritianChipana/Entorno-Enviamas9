@@ -31,7 +31,7 @@ class Model:
 
     def select_all_campaign_agenda_excel_model(self):
         # pendiente 2 y agendado 4 el status de cada campaña
-        sql = 'SELECT * FROM campaigns where (campaign_type_id = 1 || campaign_type_id = 2 || campaign_type_id = 3) and service_id = 1 and (status = 2 || status = 4) order by scheduled asc '
+        sql = 'SELECT * FROM campaigns where (campaign_type_id = 1 || campaign_type_id = 2 || campaign_type_id = 3 || campaign_type_id = 4) and service_id = 1 and (status = 2 || status = 4) order by scheduled asc '
         # sql = 'SELECT * FROM campaigns where id=9'
         try:
             self.cursor.execute(sql)
@@ -79,6 +79,16 @@ class Model:
 
     def select_excel_sms_by_id (self,id):
         sql = 'SELECT * FROM excel_sms_campaigns WHERE campaign_id = {} '.format(id)
+        try:
+            self.cursor.execute(sql)
+            excel_sms_campaigns = self.cursor.fetchone()
+            return excel_sms_campaigns
+        except Exception as e:
+            print(e)
+            raise
+
+    def select_json_sms_by_id (self,id):
+        sql = 'SELECT * FROM json_sms_campaigns WHERE campaign_id = {} '.format(id)
         try:
             self.cursor.execute(sql)
             excel_sms_campaigns = self.cursor.fetchone()
@@ -440,6 +450,44 @@ class Controller(object):
 
                 print("cccccccccccccccccccccccccccccccccccccc")
     
+    def read_json(self, path, sms_campaign, campaign):
+        user = self.model.select_user(campaign[5])
+        self.new_url = None
+
+        f.write('\n' + 'El usuario usa el channel: ' + str(user[7]))
+        user_chanel_id = user[7]
+        f.write('\n' + 'El email del usuario es: ' + str(user[2]))
+        f.write('\n' + '*********** Inicio de envio de sms ******************')
+        with open(path, 'r') as fe:
+            data = json.load(fe)
+        print(7)
+        print(data[0]['phone'])
+
+        for i in range(0,len(data)):
+            phone = data[i]['phone']
+            message = data[i]['text']
+            message = self.standardize_message(message)
+
+            phone_status = self.validate_phone(phone)
+
+            credit = self.calculate_credits(message)
+
+            # seleccionar el proveedor
+            if(phone_status):
+                response = self.send_sms_to_provider(user_chanel_id, message, phone, campaign, sms_campaign)
+                response = list(response)
+                if(response[2] != 0):
+                    response.append('DELIVERED')
+                else:
+                    response.append('REJECTED')
+            else: 
+                response = ('no se envio mensaje por el status del numero','b',0,'REJECTED')
+
+            #Mandar datos para crear sms
+            result = self.send_sms(credit,sms_campaign,message,phone ,response, campaign,user)
+
+            print("cccccccccccccccccccccccccccccccccccccc")  
+
     def send_sms(self,credit, sms_campaign, message, phone, response ,campaign,user):
         print('se envio sms')
 
@@ -754,6 +802,15 @@ class Controller(object):
                     print(contactos)
                     sms_campaign = self.model.select_sms_campaign_by_id( campaign[0])
                     self.send_sms_individuales( campaign, contactos, sms_campaign)
+
+                if(campaign[6] == 4):
+                    print('leer json y guardarlos en una variable')
+                    json_sms_campaign = self.model.select_json_sms_by_id(campaign[0])
+                    print("2222222222222222222222222222222222")
+                    print(json_sms_campaign)
+                    f.write('\n' + 'Es una campaña creada por json, el id del json es: ' + str(json_sms_campaign[0]))
+                    # self.read_excel(r"C:\xampp\htdocs\enviamas9_production\public/storage/ExcelCampaing/Hola.xlsx", sms_campaign,campaign)
+                    self.read_json(config('PUBLIC_PATH_SMS_EXCEL') + json_sms_campaign[1], sms_campaign,campaign)
 
             else:
                 print("Esta agendado pero la echa programada ya paso")
