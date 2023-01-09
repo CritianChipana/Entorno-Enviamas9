@@ -79,8 +79,8 @@ class Model:
 
     def crear_sms_with_message_id(self, payload):
         print('rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr')
-        sql = "INSERT INTO sms (credit, is_push, content, phone, status, commit, response, message_id ,payload ,user_id, campaign_id, channel_id,created_at,updated_at, send_at, message_id_external) VALUES ({},{},'{}','{}','{}','{}','{}',{},'{}',{},{},{},'{}','{}', '{}', {})".format(
-            payload['credit'], payload['is_push'], payload['content'], payload['phone'], payload['status'], payload['commit'], payload['response'], payload['message_id'],payload['payload'],payload['user_id'], payload['campaign_id'], payload['channel_id'],payload['created_at'], payload['updated_at'], payload['send_at'], payload['message_id'])
+        sql = "INSERT INTO sms (credit, is_push, content, phone, status, commit, response, message_id ,payload ,user_id, campaign_id, channel_id,created_at,updated_at, send_at, message_id_external) VALUES ({},{},'{}','{}','{}','{}','{}',{},'{}',{},{},{},'{}','{}', '{}', '{}')".format(
+            payload['credit'], payload['is_push'], payload['content'], payload['phone'], payload['status'], payload['commit'], payload['response'], payload['message_id'],payload['payload'],payload['user_id'], payload['campaign_id'], payload['channel_id'],payload['created_at'], payload['updated_at'], payload['send_at'], payload['message_id_external'])
         sql2 = "SELECT LAST_INSERT_ID()"
         try:
             self.cursor.execute(sql)
@@ -496,7 +496,7 @@ class Controller(object):
                 if "message_id" in data[i]:
                     message_id = data[i]['message_id']
                 else: 
-                    message_id = None
+                    message_id = ""
 
                 message = self.standardize_message(message)
 
@@ -562,7 +562,7 @@ class Controller(object):
                     "send_at":datetime.now()
                 }
         if message_id != None: 
-            payload['message_id'] = message_id
+            payload['message_id_external'] = message_id
 
         f.write('\n' + 'hora de envio de sms:' + str(datetime.now()))
         f.write('\n' + 'datos del sms:')
